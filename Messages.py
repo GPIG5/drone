@@ -38,3 +38,12 @@ class StatusMesh(MeshMessage):
 		d["data"]["battery"] = self.battery
 		d["data"]["datatype"] = "status"
 		return d
+
+class PinorMesh(MeshMessage):
+	def __init__(self, pinor):
+		self.pinor = pinor
+	def to_json(self):
+		d = MeshMessage.to_json(self)
+		d["data"]["pinor"] = [x.to_json() for x in self.pinor]
+		d["data"]["datatype"] = "pinor"
+		return d
