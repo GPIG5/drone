@@ -4,8 +4,8 @@ import struct
 
 class Communicator:
 	@asyncio.coroutine
-	def connect(self, loop, host):
-		reader, writer = yield from asyncio.open_connection(host, 5555, loop=loop)
+	def connect(self, host):
+		reader, writer = yield from asyncio.open_connection(host, 5555)
 		self.reader = reader
 		self.writer = writer
 	@asyncio.coroutine
