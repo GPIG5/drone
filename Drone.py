@@ -1,6 +1,11 @@
 
 from enum import Enum
 import uuid
+import asyncio
+
+@asyncio.coroutine
+def startup():
+    pass
 
 class State(Enum):
     wait = 1

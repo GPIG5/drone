@@ -1,5 +1,7 @@
 from enum import IntEnum
+import asyncio
 
+@asyncio.coroutine
 def startup():
 	pass
 
