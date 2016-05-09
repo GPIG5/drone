@@ -28,6 +28,26 @@ class DirectMessage(Message):
 	def to_json(self):
 		return Message.to_json(self)
 
+class StatusDirect(DirectMessage):
+	def __init__(self, location, battery):
+		self.location = location
+		self.battery = battery
+	def to_json(self):
+		d = DirectMessage.to_json(self)
+		d["data"]["location"] = self.location.to_json()
+		d["data"]["battery"] = self.battery
+		d["data"]["datatype"] = "status"
+		return d
+
+class PinorDirect(DirectMessage):
+	def __init__(self, pinor):
+		self.pinor = pinor
+	def to_json(self):
+		d = DirectMessage.to_json(self)
+		d["data"]["pinor"] = [x.to_json() for x in self.pinor]
+		d["data"]["datatype"] = "pinor"
+		return d
+
 class StatusMesh(MeshMessage):
 	def __init__(self, location, battery):
 		self.location = location
