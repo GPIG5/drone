@@ -38,7 +38,7 @@ class MeshMessage(Message):
 	def from_json(cls, d, self=None):
 		if self == None:
 			self = cls.__new__(cls)
-		self = Message.from_json(data, self)
+		self = Message.from_json(d, self)
 		self.origin = d["data"]["origin"]
 		return self
 
@@ -51,7 +51,7 @@ class DirectMessage(Message):
 	def from_json(cls, d, self=None):
 		if self == None:
 			self = cls.__new__(cls)
-		self = Message.from_json(data, self)
+		self = Message.from_json(d, self)
 		return self
 
 class StatusDirect(DirectMessage):
@@ -69,7 +69,7 @@ class StatusDirect(DirectMessage):
 	def from_json(cls, d, self=None):
 		if self == None:
 			self = cls.__new__(cls)
-		self = DirectMessage.from_json(data, self)
+		self = DirectMessage.from_json(d, self)
 		self.location = Point.from_json(d["data"]["location"])
 		self.battery = d["data"]["battery"]
 		return self
@@ -87,7 +87,7 @@ class PinorDirect(DirectMessage):
 	def from_json(cls, d, self=None):
 		if self == None:
 			self = cls.__new__(cls)
-		self = DirectMessage.from_json(data, self)
+		self = DirectMessage.from_json(d, self)
 		self.pinor = [Point.from_json(x) for x in d["data"]["pinor"]]
 		return self
 
@@ -106,7 +106,7 @@ class StatusMesh(MeshMessage):
 	def from_json(cls, d, self=None):
 		if self == None:
 			self = cls.__new__(cls)
-		self = MeshMessage.from_json(data, self)
+		self = MeshMessage.from_json(d, self)
 		self.location = Point.from_json(d["data"]["location"])
 		self.battery = d["data"]["battery"]
 		return self
@@ -124,6 +124,6 @@ class PinorMesh(MeshMessage):
 	def from_json(cls, d, self=None):
 		if self == None:
 			self = cls.__new__(cls)
-		self = MeshMessage.from_json(data, self)
+		self = MeshMessage.from_json(d, self)
 		self.pinor = [Point.from_json(x) for x in d["data"]["pinor"]]
 		return self
