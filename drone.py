@@ -45,9 +45,8 @@ class Drone:
 			self.communicator
 		]
 		print("starting init tasks")
-		loop.run_until_complete(asyncio.wait(
-			[asyncio.async(x.initialise()) for x in inittasks],
-			return_when = asyncio.FIRST_EXCEPTION
+		loop.run_until_complete(asyncio.gather(
+			*[x.initialise() for x in inittasks]
 		))
 		tasks = [
 			self,
@@ -58,9 +57,8 @@ class Drone:
 			self.telemetry
 		]
 		print("starting main tasks")
-		loop.run_until_complete(asyncio.wait(
-			[asyncio.async(x.startup()) for x in tasks],
-			return_when = asyncio.FIRST_EXCEPTION
+		loop.run_until_complete(asyncio.gather(
+			*[x.startup() for x in tasks]
 		))
 		loop.close()
 
