@@ -2,6 +2,9 @@ from enum import IntEnum
 import asyncio
 
 class Datastore:
+	def __init__(self, messagedispatcher):
+		self.messagedispatcher = messagedispatcher
+
 	@asyncio.coroutine
 	def startup(self):
 		pass
