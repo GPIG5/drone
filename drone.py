@@ -23,7 +23,7 @@ class Drone:
 		self.navigator = Navigator()
 		self.telemetry = Telemetry()
 
-	def getUUID():
+	def getUUID(self):
 		return self.uuid
 
 	def getConfig(self, key = None):
@@ -34,7 +34,7 @@ class Drone:
 		else:
 			raise KeyError('Key: ' + key + ' not found in configuration.')
 
-	def run():
+	def run(self):
 		tasks = [
 			self.datastore,
 			self.detection,

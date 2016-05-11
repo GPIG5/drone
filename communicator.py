@@ -9,7 +9,7 @@ class Communicator:
 		self.drone = drone
 		self.config = self.drone.getConfig('communicator')
 		self.host = self.config.get('host')
-		self.port = self.config.getInt('port')
+		self.port = self.config.get('port')
 
 	@asyncio.coroutine
 	def initialise():
