@@ -17,11 +17,11 @@ class Drone:
 		self.config = config
 		comconf = self.config["communicator"]
 		self.communicator = Communicator(comconf["host"], comconf["port"], self.uuid)
-		self.messagedispatcher = Messagedispatcher(communicator)
-		self.datastore = Datastore(messagedispatcher)
-		self.detection = Detection(messagedispatcher)
-		self.navigator = Navigator(messagedispatcher)
-		self.telemetry = Telemetry(messagedispatcher)
+		self.messagedispatcher = Messagedispatcher(self.communicator)
+		self.datastore = Datastore(self.messagedispatcher)
+		self.detection = Detection(self.messagedispatcher)
+		self.navigator = Navigator(self.messagedispatcher)
+		self.telemetry = Telemetry(self.messagedispatcher)
 
 	def getUUID(self):
 		return self.uuid

@@ -26,14 +26,14 @@ class Messagedispatcher:
 				}
 			}
 		}
-	@asyncio.coroutine
+	@coroutine
 	def wait_for_message(self, *types):
 		x = self.messages
 		for i in types:
 			x = x[i]
 		x = x["queue"]
 		yield from x.get()
-	@asyncio.coroutine
+	@coroutine
 	def startup(self):
 		while True:
 			msg = yield from self.communicator.receive()
