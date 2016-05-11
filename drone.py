@@ -12,48 +12,48 @@ from navigator import Navigator
 from telemetry import Telemetry
 
 class Drone:
-    def __init__(self, config):
-        self.uuid = uuid.uuid4()
-        self.config = config
+	def __init__(self, config):
+		self.uuid = uuid.uuid4()
+		self.config = config
 
-        self.communicator = Communicator(self)
-        self.datastore = Datastore()
-        self.detection = Detection()
-        self.messagedispatcher = Messagedispatcher()
-        self.navigator = Navigator()
-        self.telemetry = Telemetry()
+		self.communicator = Communicator(self)
+		self.datastore = Datastore()
+		self.detection = Detection()
+		self.messagedispatcher = Messagedispatcher()
+		self.navigator = Navigator()
+		self.telemetry = Telemetry()
 
-    def getUUID():
-        return self.uuid
+	def getUUID():
+		return self.uuid
 
-    def getConfig(key = None):
-        if key is None:
-            return self.config
-        elif key in self.config:
-            return self.config[key]
-        else
-            raise KeyError('Key: ' + key + ' not found in configuration.')
+	def getConfig(self, key = None):
+		if key is None:
+			return self.config
+		elif key in self.config:
+			return self.config[key]
+		else:
+			raise KeyError('Key: ' + key + ' not found in configuration.')
 
-    def run():
-        tasks = [
-            self.datastore,
-            self.detection,
-            self.messagedispatcher,
-            self.navigator,
-            self.telemetry
-        ]
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(asyncio.wait([asyncio.async(x.startup()) for x in tasks]))
-        loop.close()
+	def run():
+		tasks = [
+			self.datastore,
+			self.detection,
+			self.messagedispatcher,
+			self.navigator,
+			self.telemetry
+		]
+		loop = asyncio.get_event_loop()
+		loop.run_until_complete(asyncio.wait([asyncio.async(x.startup()) for x in tasks]))
+		loop.close()
 
 
 def main():
-    config = configparser.ConfigParser
-    config.read('config.ini')
+	config = configparser.ConfigParser()
+	config.read('config.ini')
 
-    drone = Drone(config)
-    drone.run()
+	drone = Drone(config)
+	drone.run()
 
 if __name__ == "__main__":
-    # execute only if run as a script
-    main()
+	# execute only if run as a script
+	main()
