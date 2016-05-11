@@ -36,9 +36,16 @@ class Drone:
 
 	@asyncio.coroutine
 	def startup(self):
-		yield from self.communicator.initialise()
+		#yield from self.communicator.initialise()
+		return
 
 	def run(self):
+		loop = asyncio.get_event_loop()
+		inittasks = [
+			self.communicator
+		]
+		print("starting init tasks")
+		loop.run_until_complete(asyncio.wait([asyncio.async(x.initialise()) for x in inittasks]))
 		tasks = [
 			self,
 			self.datastore,
@@ -47,8 +54,7 @@ class Drone:
 			self.navigator,
 			self.telemetry
 		]
-		loop = asyncio.get_event_loop()
-		print("starting tasks")
+		print("starting main tasks")
 		loop.run_until_complete(asyncio.wait([asyncio.async(x.startup()) for x in tasks]))
 		loop.close()
 
