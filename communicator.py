@@ -5,21 +5,20 @@ import struct
 from messages import DirectMessage
 
 class Communicator:
-	def __init__(self, drone):
-		self.drone = drone
-		self.config = self.drone.getConfig('communicator')
-		self.host = self.config.get('host')
-		self.port = self.config.get('port')
+	def __init__(self, host, port, uuid):
+		self.host = host
+		self.port = port
+		self.uuid = uuid
 
 	@asyncio.coroutine
-	def initialise():
-		yield from connect(self.host, self.port)
-		hello = DirectMessage(self.drone.getUUID())
-		yield from send(hello)
+	def initialise(self):
+		yield from self.connect()
+		hello = DirectMessage(self.uuid)
+		yield from self.send(hello.to_json())
 
 	@asyncio.coroutine
-	def connect(self, host, port):
-		reader, writer = yield from asyncio.open_connection(host, port)
+	def connect(self):
+		reader, writer = yield from asyncio.open_connection(self.host, self.port)
 		self.reader = reader
 		self.writer = writer
 

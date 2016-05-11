@@ -15,8 +15,8 @@ class Drone:
 	def __init__(self, config):
 		self.uuid = uuid.uuid4()
 		self.config = config
-
-		self.communicator = Communicator(self)
+		comconf = self.config["communicator"]
+		self.communicator = Communicator(comconf["host"], comconf["port"], self.uuid)
 		self.datastore = Datastore()
 		self.detection = Detection()
 		self.messagedispatcher = Messagedispatcher()
