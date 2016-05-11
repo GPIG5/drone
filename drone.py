@@ -1,31 +1,43 @@
 
+import asyncio
+import configparser
 from enum import Enum
 import uuid
-import asyncio
 
-@asyncio.coroutine
-def startup():
-    pass
-
-class State(Enum):
-    wait = 1
-    search = 2
-    found = 3
-    battery = 4
+from communicator import Communicator
+import datastore
+import detection
+import messagedispatcher
+import navigator
+import telemetry
 
 class Drone:
-    def __init__(self):
+    def __init__(self, config):
         self.uuid = uuid.uuid4()
-        self.state = State.wait
-        self.location
-        self.battery
-        self.comms
+        self.config = config
+
+        self.comms = Communicator(self)
+
+    def getUUID():
+        return self.uuid
+
+    def getConfig(key = None):
+        if key is None:
+            return self.config
+        elif key in self.config:
+            return self.config[key]
+        else
+            raise KeyError('Key: ' + key + ' not found in configuration.')
 
     def run():
         pass
 
+
 def main():
-    drone = Drone()
+    config = configparser.ConfigParser
+    config.read('config.ini')
+
+    drone = Drone(config)
     drone.run()
 
 if __name__ == "__main__":

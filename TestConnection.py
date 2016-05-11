@@ -1,9 +1,9 @@
-import Communicator
+import communicator
 import asyncio
 
 @asyncio.coroutine
 def main(host):
-	c = Communicator.Communicator()
+	c = communicator.Communicator()
 	yield from c.connect(host)
 	print("connected")
 	#yield from c.send("hello")
