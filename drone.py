@@ -16,7 +16,7 @@ class Drone:
 		self.uuid = uuid.uuid4()
 		self.config = config
 		comconf = self.config["communicator"]
-		self.communicator = Communicator(comconf["host"], comconf["port"], self.uuid)
+		self.communicator = Communicator(comconf["host"], comconf["port"], self.getUUID())
 		self.messagedispatcher = Messagedispatcher(self.communicator)
 		self.datastore = Datastore(self.messagedispatcher)
 		self.detection = Detection(self.messagedispatcher)
@@ -24,7 +24,7 @@ class Drone:
 		self.telemetry = Telemetry(self.messagedispatcher)
 
 	def getUUID(self):
-		return self.uuid
+		return str(self.uuid)
 
 	def getConfig(self, key = None):
 		if key is None:
