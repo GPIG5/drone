@@ -31,8 +31,8 @@ class Messagedispatcher:
 		x = self.messages
 		for i in types:
 			x = x[i]
-		x = x["queue"]
-		yield from x.get()
+		q = x["queue"]
+		return (yield from q.get())
 	@coroutine
 	def startup(self):
 		while True:

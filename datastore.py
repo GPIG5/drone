@@ -1,13 +1,29 @@
 from enum import IntEnum
 import asyncio
 
+class Drone:
+	def __init__(self, uuid, battery, location):
+		self.uuid = uuid
+		self.battery = battery
+		self.location = location
+
 class Datastore:
 	def __init__(self, messagedispatcher):
 		self.messagedispatcher = messagedispatcher
+		self.drone_state = {}
+
+	def get_drone_state(self, uuid):
+		if uuid in self.drone_state:
+			return self.drone_state[uuid]
+		else:
+			raise "no drone with that uuid"
 
 	@asyncio.coroutine
 	def startup(self):
-		pass
+		while True:
+			st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
+			d = Drone(st.origin, st.battery, st.location)
+			self.drone_state[d.uuid] = d
 
 class SquareState(IntEnum):
 	searched = -1
