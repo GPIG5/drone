@@ -18,23 +18,25 @@ class Drone:
 
         self.comms = Communicator(self)
 
-    def getUUID():
-        return self.uuid
+    def getUUID(self):
+        return str(self.uuid)
 
-    def getConfig(key = None):
+    def getConfig(self, key = None):
         if key is None:
             return self.config
         elif key in self.config:
             return self.config[key]
-        else
+        else:
             raise KeyError('Key: ' + key + ' not found in configuration.')
 
-    def run():
-        pass
+    def run(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.comms.initialise())
+        loop.close()
 
 
 def main():
-    config = configparser.ConfigParser
+    config = configparser.ConfigParser()
     config.read('config.ini')
 
     drone = Drone(config)
