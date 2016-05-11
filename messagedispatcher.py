@@ -1,5 +1,6 @@
 import asyncio
 
-@asyncio.coroutine
-def startup():
-	pass
+class Messagedispatcher:
+	@asyncio.coroutine
+	def startup(self):
+		pass
