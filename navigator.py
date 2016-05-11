@@ -1,5 +1,6 @@
 import asyncio
 
-@asyncio.coroutine
-def startup():
-	pass
+class Navigator:
+	@asyncio.coroutine
+	def startup(self):
+		pass

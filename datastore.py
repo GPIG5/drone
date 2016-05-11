@@ -1,9 +1,10 @@
 from enum import IntEnum
 import asyncio
 
-@asyncio.coroutine
-def startup():
-	pass
+class Datastore:
+	@asyncio.coroutine
+	def startup(self):
+		pass
 
 class SquareState(IntEnum):
 	searched = -1
