@@ -34,8 +34,13 @@ class Drone:
 		else:
 			raise KeyError('Key: ' + key + ' not found in configuration.')
 
+	@asyncio.coroutine
+	def startup(self):
+		yield from self.communicator.initialise()
+
 	def run(self):
 		tasks = [
+			self,
 			self.datastore,
 			self.detection,
 			self.messagedispatcher,
@@ -43,6 +48,7 @@ class Drone:
 			self.telemetry
 		]
 		loop = asyncio.get_event_loop()
+		print("starting tasks")
 		loop.run_until_complete(asyncio.wait([asyncio.async(x.startup()) for x in tasks]))
 		loop.close()
 
