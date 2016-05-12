@@ -10,7 +10,8 @@ class Telemetry:
 
         self.uuid = config.get('uuid')
         self.batterySize = config.getfloat('battery_size')
-        self.location = Point(*make_tuple(config.get('start_location')))
+        self.initialLocation = Point(*make_tuple(config.get('start_location')))
+        self.location = self.initialLocation
         self.locationLock = asyncio.Lock()
         self.startTime = 0
 
@@ -39,6 +40,12 @@ class Telemetry:
     def setLocation(self, newLocation : Point):
         with (yield from locationLock):
             self.location = newLocation
+
+    def getInitialBattery(self):
+        return self.batterySize
+
+    def getInitialLocation(self):
+        return self.initialLocation
 
     def getBattery(self):
         currentTime = asyncio.get_event_loop().time()
