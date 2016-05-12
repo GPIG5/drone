@@ -3,15 +3,19 @@ import time
 import configparser
 from enum import Enum
 import datastore
+from reactor import Reactor
 
 
 class Navigator:
     def __init__(self, messagedispatcher):
         self.messagedispatcher = messagedispatcher
+        self.reactor = Reactor()
 
     @asyncio.coroutine
     def startup(self):
-        pass
+        while True:
+            self.reactor.run()
+            yield from asyncio.sleep(1)
 
 class State(Enum):
     move = 1
@@ -22,7 +26,7 @@ class State(Enum):
     rendezvous = 6
 
 
-class Navigator:
+class Navigator2:
     def __init__(self, self_id, grid_state, telemetry, neighbours, engine):
         self.id = self_id
         self.state = State.move

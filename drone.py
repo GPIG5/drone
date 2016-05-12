@@ -23,11 +23,21 @@ class Drone:
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.messagedispatcher)
         self.detection = Detection(self.messagedispatcher)
-        #self.navigator = Navigator(self.messagedispatcher)
+        self.navigator = Navigator(self.messagedispatcher)
+
+    def getUUID(self):
+        return str(self.uuid)
+
+    def getConfig(self, key = None):
+        if key is None:
+            return self.config
+        elif key in self.config:
+            return self.config[key]
+        else:
+            raise KeyError('Key: ' + key + ' not found in configuration.')
 
     @asyncio.coroutine
     def startup(self):
-        #yield from self.communicator.initialise()
         return
 
     def run(self):
@@ -45,7 +55,7 @@ class Drone:
             self.datastore,
             self.detection,
             self.messagedispatcher,
-            #self.navigator,
+            self.navigator,
             self.telemetry
         ]
         print("starting main tasks")
