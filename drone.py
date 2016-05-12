@@ -23,6 +23,7 @@ class Drone:
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.messagedispatcher)
         self.detection = Detection(self.messagedispatcher)
+        #self.navigator = Navigator(self.messagedispatcher)
 
     @asyncio.coroutine
     def startup(self):
@@ -44,6 +45,7 @@ class Drone:
             self.datastore,
             self.detection,
             self.messagedispatcher,
+            #self.navigator,
             self.telemetry
         ]
         print("starting main tasks")

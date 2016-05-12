@@ -1,7 +1,8 @@
 from ast import literal_eval as make_tuple
 import asyncio
 
-from messages import Point, StatusDirect, StatusMesh
+from messages import StatusDirect, StatusMesh
+from point import Point
 
 class Telemetry:
     def __init__(self, config, communicator):
