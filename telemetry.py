@@ -36,7 +36,7 @@ class Telemetry:
         return self.location
 
     @asyncio.coroutine
-    def setLocation(self, newLocation):
+    def setLocation(self, newLocation : Point):
         with (yield from locationLock):
             self.location = newLocation
 
