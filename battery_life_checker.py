@@ -1,6 +1,6 @@
 from layer import *
 
-class Battery_life_checker(Layer):
+class BatteryLifeChecker(Layer):
     def __init__(self, next, telemetry):
         Layer.__init__(self, next)
         self.telemetry = telemetry
