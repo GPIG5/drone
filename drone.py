@@ -20,7 +20,7 @@ class Drone:
         self.messagedispatcher = Messagedispatcher(self.communicator)
         self.datastore = Datastore(self.messagedispatcher)
         self.detection = Detection(self.messagedispatcher)
-        self.navigator = Navigator(self.messagedispatcher)
+        #self.navigator = Navigator(self.messagedispatcher)
         self.telemetry = Telemetry(self.messagedispatcher)
 
     def getUUID(self):
@@ -53,7 +53,7 @@ class Drone:
             self.datastore,
             self.detection,
             self.messagedispatcher,
-            self.navigator,
+            #self.navigator,
             self.telemetry
         ]
         print("starting main tasks")
