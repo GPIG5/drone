@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import asyncio
 import configparser
@@ -15,24 +16,13 @@ class Drone:
     def __init__(self, config):
         self.uuid = uuid.uuid4()
         self.config = config
-        comconf = self.config["communicator"]
-        self.communicator = Communicator(comconf["host"], comconf["port"], self.getUUID())
+        config.set('DEFAULT', 'uuid', str(self.uuid))
+
+        self.communicator = Communicator(self.config["communicator"])
         self.messagedispatcher = Messagedispatcher(self.communicator)
+        self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.messagedispatcher)
         self.detection = Detection(self.messagedispatcher)
-        self.navigator = Navigator(self.messagedispatcher)
-        self.telemetry = Telemetry(self.messagedispatcher)
-
-    def getUUID(self):
-        return str(self.uuid)
-
-    def getConfig(self, key = None):
-        if key is None:
-            return self.config
-        elif key in self.config:
-            return self.config[key]
-        else:
-            raise KeyError('Key: ' + key + ' not found in configuration.')
 
     @asyncio.coroutine
     def startup(self):
@@ -42,7 +32,8 @@ class Drone:
     def run(self):
         loop = asyncio.get_event_loop()
         inittasks = [
-            self.communicator
+            self.communicator,
+            self.telemetry
         ]
         print("starting init tasks")
         loop.run_until_complete(asyncio.gather(
@@ -53,7 +44,6 @@ class Drone:
             self.datastore,
             self.detection,
             self.messagedispatcher,
-            self.navigator,
             self.telemetry
         ]
         print("starting main tasks")

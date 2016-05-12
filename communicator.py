@@ -5,10 +5,10 @@ import struct
 from messages import DirectMessage
 
 class Communicator:
-    def __init__(self, host, port, uuid):
-        self.host = host
-        self.port = port
-        self.uuid = uuid
+    def __init__(self, config):
+        self.host = config.get('host')
+        self.port = config.getint('port')
+        self.uuid = config.get('uuid')
 
     @asyncio.coroutine
     def initialise(self):
