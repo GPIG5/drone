@@ -6,6 +6,6 @@ class Battery_life_checker(Layer):
         self.telemetry = telemetry
     def execute_layer(self, current_output):
         op = Layer.execute_layer(self, current_output)
-        if self.telemetry.getBattery() < (self.telemetry.getInitialBattery() / 2):
-            op.move = self.telemetry.getInitialLocation()
+        if self.telemetry.get_battery() < (self.telemetry.get_initial_battery() / 2):
+            op.move = self.telemetry.get_initial_location()
         return op
