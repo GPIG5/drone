@@ -13,8 +13,9 @@ class Detection:
 	def startup(self):
 		while True:
             msg = yield from self.messagedispatcher.wait_for_message("direct", "pinor").to_json()
-            pinor = msg['data']['pinor']
-            self.pinor.extend(pinor)
+            pinor = (time.time(), msg['data']['pinor'])
+            img = msg['data']['img']
+            self.pinor.append(pinor)
             yield from self.communicator.send(PinorMesh(self.uuid, self.uuid, pinor).to_json())
 
     def get_pinor():
