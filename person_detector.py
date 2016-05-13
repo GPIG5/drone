@@ -1,6 +1,6 @@
 from layer import *
 
-class Person_detector(Layer):
+class PersonDetector(Layer):
     def __init__(self, next):
         Layer.__init__(self, next)
     def execute_layer(self, current_output):

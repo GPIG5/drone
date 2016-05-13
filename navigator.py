@@ -7,9 +7,9 @@ from reactor import Reactor
 
 
 class Navigator:
-    def __init__(self, messagedispatcher):
+    def __init__(self, messagedispatcher, telemetry):
         self.messagedispatcher = messagedispatcher
-        self.reactor = Reactor()
+        self.reactor = Reactor(telemetry)
 
     @asyncio.coroutine
     def startup(self):
