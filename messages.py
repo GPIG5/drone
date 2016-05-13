@@ -1,4 +1,5 @@
 from point import Point
+import time
 
 class Message:
     def __init__(self, uuid, t):
@@ -17,10 +18,12 @@ class Message:
 class MeshMessage(Message):
     def __init__(self, uuid, origin):
         self.origin = origin
+        self.timestamp = time.time()
         Message.__init__(self, uuid, "mesh")
     def to_json(self):
         d = Message.to_json(self)
         d["data"]["origin"] = self.origin
+        d["data"]["timestamp"] = self.timestamp
         return d
     @classmethod
     def from_json(cls, d, self=None):
@@ -28,6 +31,7 @@ class MeshMessage(Message):
             self = cls.__new__(cls)
         self = Message.from_json(d, self)
         self.origin = d["data"]["origin"]
+        self.timestamp = d["data"]["timestamp"]
         return self
 
 class DirectMessage(Message):
