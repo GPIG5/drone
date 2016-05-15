@@ -17,8 +17,6 @@ class SwarmController(Layer):
         self.telemetry = telemetry
         self.avoidance_target = None
         self.aggregation_timer = time.time()
-        # TODO initialise target
-        # target = the sector as identified by the grid coordinates
         self.target = None
 
         self.avoidance_radius = config.getint('avoidance_radius')
@@ -51,14 +49,29 @@ class SwarmController(Layer):
             else:
                 return self.perform_coherence
 
+    # Checks whether an avoidance move is necessary in the current state
     def avoidance_needed(self):
-        pass
+        position_of_closest = None  # TODO
+        current_position = self.telemetry.get_location()
+        return current_position.distance_to(position_of_closest) < self.avoidance_radius
 
+    # Returns an action that needs to be taken for avoidance
     def perform_avoidance(self):
+
         if self.state != State.avoidance:
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
-            
+
+            position_of_closest = None  # TODO
+            current_position = self.telemetry.get_location()
+            avoidance_x = current_position.x + (position_of_closest.x - current_position.x)
+            avoidance_y = current_position.y + (position_of_closest.y - current_position.y)
+            avoidance_z = current_position.z + (position_of_closest.x - current_position.z)
+            self.target = Point(avoidance_x, avoidance_y, avoidance_z)
+
+        self.aggregation_timer = time.time()
+        return Action(self.target)
+
     def coherence_needed(self):
         pass
 

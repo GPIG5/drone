@@ -8,5 +8,5 @@ start_location = (0,0,0)
 
 [swarm]
 avoidance_radius = 25
-aggregation_timeout = 50
+aggregation_timeout = 10
 avoid_until_range = 50
