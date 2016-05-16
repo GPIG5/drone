@@ -24,7 +24,7 @@ class Drone:
         self.messagedispatcher = Messagedispatcher(self.communicator)
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.messagedispatcher)
-        self.detection = Detection(self.messagedispatcher)
+        self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
         self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
         self.mesh_controller = MeshController(self.messagedispatcher, self, self.communicator)
         self.engine = Engine(self.telemetry, self.navigator)
@@ -48,7 +48,8 @@ class Drone:
         loop = asyncio.get_event_loop()
         inittasks = [
             self.communicator,
-            self.telemetry
+            self.telemetry,
+            self.detection
         ]
         print("starting init tasks")
         loop.run_until_complete(asyncio.gather(

@@ -6,6 +6,9 @@ port = 5555
 battery_size = 1800
 start_location = (0,0,0)
 
+[detection]
+data_folder = ./data/
+
 [swarm]
 avoidance_radius = 25
 aggregation_timeout = 10
