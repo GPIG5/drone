@@ -26,6 +26,7 @@ class Messagedispatcher:
                 }
             }
         }
+        self.mesh_queue = Queue()
     @coroutine
     def wait_for_message(self, *types):
         x = self.messages
@@ -34,9 +35,14 @@ class Messagedispatcher:
         q = x["queue"]
         return (yield from q.get())
     @coroutine
+    def get_mesh_message(self):
+        return (yield from self.mesh_queue.get())
+    @coroutine
     def startup(self):
         while True:
             msg = yield from self.communicator.receive()
+            if msg["type"] == "mesh":
+                self.mesh_queue.put(msg)
             x = self.messages
             x = x[msg["type"]]
             x = x[msg["data"]["datatype"]]
