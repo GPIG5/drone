@@ -8,9 +8,11 @@ class Point:
     def from_json(cls, d, self=None):
         if self == None:
             self = cls.__new__(cls)
-        self.p.longitude = d["long"]
-        self.p.latitude = d["lat"]
-        self.p.altitude = d["alt"]
+        self.p = geopy.point.Point(
+            longitude = d["long"],
+            latitude = d["lat"],
+            altitude = d["alt"]
+        )
         return self
     @property
     def latitude(self):
