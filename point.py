@@ -12,6 +12,7 @@ class Point:
         self.p.latitude = d["latitude"]
         self.p.altitude = d["altitude"]
         return self
+
     def to_json(self):
         return {
             "longitude": self.p.longitude,
