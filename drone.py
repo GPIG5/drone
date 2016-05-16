@@ -12,6 +12,7 @@ from messagedispatcher import Messagedispatcher
 from navigator import Navigator
 from telemetry import Telemetry
 from mesh_controller import MeshController
+from engine import Engine
 
 class Drone:
     def __init__(self, config):
@@ -26,6 +27,7 @@ class Drone:
         self.detection = Detection(self.messagedispatcher)
         self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
         self.mesh_controller = MeshController(self.messagedispatcher, self, self.communicator)
+        self.engine = Engine(self.telemetry, self.navigator)
 
     def getUUID(self):
         return str(self.uuid)
@@ -59,7 +61,8 @@ class Drone:
             self.messagedispatcher,
             self.navigator,
             self.telemetry,
-            self.mesh_controller
+            self.mesh_controller,
+            self.engine
         ]
         print("starting main tasks")
         loop.run_until_complete(asyncio.gather(
