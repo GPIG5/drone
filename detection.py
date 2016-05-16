@@ -6,25 +6,25 @@ import time
 from messages import PinorMesh
 
 class Detection:
-	def __init__(self, config, communicator, messagedispatcher):
+    def __init__(self, config, communicator, messagedispatcher):
         self.uuid = config.get('uuid')
         self.data_folder = config.get('data_folder')
         self.pinor_file = self.data_folder + 'pinor.csv'
         self.communicator = communicator
-		self.messagedispatcher = messagedispatcher
+        self.messagedispatcher = messagedispatcher
         self.pinor = []
 
     @asyncio.coroutine
     def initialise(self):
         f = yield from aiofiles.open(self.pinor_file, mode='w')
-            try:
-                yield from f.write('timestamp,lat,lon,alt,img\n')
-            finally:
-                yield from f.close()
+        try:
+            yield from f.write('timestamp,lat,lon,alt,img\n')
+        finally:
+            yield from f.close()
 
-	@asyncio.coroutine
-	def startup(self):
-		while True:
+    @asyncio.coroutine
+    def startup(self):
+        while True:
             msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor').to_json()
 
             timestamp = time.time()
