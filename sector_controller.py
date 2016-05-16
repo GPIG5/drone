@@ -63,6 +63,9 @@ class SectorController(Layer):
                                                       self.telemetry.get_location())
 
     def perform_search(self):
+
+        # TODO Not right - either consider only the square within detection radius or move full square width
+
         if self.state != State.searching:
             # Start at top-left and scan through until the bottom right is within range
             current_position = self.telemetry.get_location()
@@ -80,6 +83,8 @@ class SectorController(Layer):
             bottom_left = None  # TODO obtain from grid state
             bottom_right = None  # TODO obtain from grid state
 
+            # TODO isn't right - right-left move not considered
+
             # If left is closer than right then we move right, otherwise we move down
             if current_position.x - bottom_left.x < bottom_right.x - current_position.x:
                 old_target = self.target
@@ -91,7 +96,7 @@ class SectorController(Layer):
             else:
                 old_target = self.target
                 self.target = Point(
-                    longitude=old_target.longitude - 2*self.detection_radius,
+                    longitude=old_target.longitude - 2 * self.detection_radius,
                     latitude=old_target.latitude,
                     altitude=old_target.altitude
                 )
@@ -104,5 +109,22 @@ class SectorController(Layer):
         pass
 
     def search_complete(self):
-        # when the bottom right corner is within range
-        pass
+
+        # The way we measure whether search is complete is by calculating how many trips are made
+        # A "trip" is a single traversal of the sector from left to right or from right to left
+        # If the number of trips required for a sector to be covered is even, then the search will
+        # be complete when the bottom-left corner is in range; otherwise we look for bottom-right
+        sector_height = 0  # TODO
+        trip_count = ((sector_height - self.detection_radius / math.sqrt(2) - self.detection_radius) /
+                      2 * self.detection_radius) + 1
+
+        current_location = self.telemetry.get_location()
+
+        if trip_count % 2 == 0:
+            # If the number of trips is even, then we are looking for bottom-left corner in range
+            bottom_left = None  # TODO
+            return current_location.distance_to(bottom_left) < self.detection_radius
+        else:
+            # otherwise we are looking for bottom-right
+            bottom_right = None
+            return current_location.distance_to(bottom_right) < self.detection_radius
