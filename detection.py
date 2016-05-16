@@ -25,7 +25,8 @@ class Detection:
     @asyncio.coroutine
     def startup(self):
         while True:
-            msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor').to_json()
+            msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor')
+            msg = msg.to_json()
 
             timestamp = time.time()
             timestr = time.strftime('%Y%m%d%H%M%S')
