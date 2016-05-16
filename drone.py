@@ -22,7 +22,7 @@ class Drone:
         self.messagedispatcher = Messagedispatcher(self.communicator)
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.messagedispatcher)
-        self.detection = Detection(self.config['DEFAULT'], self.communicator, self.messagedispatcher)
+        self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
         self.navigator = Navigator(self.messagedispatcher, self.telemetry)
 
     def getUUID(self):
@@ -44,7 +44,8 @@ class Drone:
         loop = asyncio.get_event_loop()
         inittasks = [
             self.communicator,
-            self.telemetry
+            self.telemetry,
+            self.detection
         ]
         print("starting init tasks")
         loop.run_until_complete(asyncio.gather(
