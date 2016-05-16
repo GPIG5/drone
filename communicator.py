@@ -27,8 +27,7 @@ class Communicator:
         encoded = json.dumps(data).encode('utf-8')
         self.writer.write(struct.pack("!L", len(encoded)))
         self.writer.write(encoded)
-        print(struct.pack("!L", len(encoded)))
-        print(encoded)
+        print("send: " + str(data))
 
     @asyncio.coroutine
     def send_message(self, msg):
@@ -40,4 +39,5 @@ class Communicator:
         encoded_size = struct.unpack("!L", unencoded_size)[0]
         unencoded_data = yield from self.reader.readexactly(encoded_size)
         encoded_data = json.loads(unencoded_data.decode('utf-8'))
+        print("receive: " + str(encoded_data))
         return encoded_data

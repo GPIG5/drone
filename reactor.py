@@ -16,7 +16,7 @@ class Reactor:
         c2 = C2Reactor(secc.execute_layer)
         pd = PersonDetector(c2.execute_layer)
         bl = BatteryLifeChecker(pd.execute_layer, telemetry)
-        cd = CollisionDetector(bl.execute_layer)
+        cd = CollisionDetector(bl.execute_layer, data_store, telemetry)
         self.entry = cd.execute_layer
     def run(self):
         return self.entry(Action())
