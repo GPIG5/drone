@@ -82,15 +82,3 @@ class NeighbourState:
     def update_position(self, position):
         self.position = position
 
-
-class Position:
-    def __init__(self, x_pos, y_pos, z_pos):
-        self.x = x_pos
-        self.y = y_pos
-        self.z = z_pos
-
-    def distance_to(self, position):
-        return math.sqrt(math.pow(self.x - position.x, 2) +
-                         math.pow(self.y - position.y, 2) +
-                         math.pow(self.z - position.z, 2))
-
