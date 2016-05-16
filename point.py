@@ -1,25 +1,39 @@
-import math
-
+import geopy
+import geopy.distance
 
 class Point:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
+    def __init__(self, *args, **kwargs):
+        self.p = geopy.point.Point(*args, **kwargs)
     @classmethod
     def from_json(cls, d, self=None):
         if self == None:
             self = cls.__new__(cls)
-        self.x = d["x"]
-        self.y = d["y"]
-        self.z = d["z"]
+        self.p = geopy.point.Point(
+            longitude = d["long"],
+            latitude = d["lat"],
+            altitude = d["alt"]
+        )
         return self
-
+    @property
+    def latitude(self):
+        return self.p.latitude
+    @property
+    def longitude(self):
+        return self.p.longitude
+    @property
+    def altitude(self):
+        return self.p.altitude
     def to_json(self):
-        return {"x": self.x, "y": self.y, "z": self.z}
-
-    def distance_to(self, other_point):
-        math.sqrt(math.pow(self.x - other_point.x, 2) +
-                  math.pow(self.y - other_point.y, 2) +
-                  math.pow(self.z - other_point.z, 2))
+        return {
+            "long": self.longitude,
+            "lat": self.latitude,
+            "alt": self.altitude
+        }
+    def distance_to(self, p2):
+        return geopy.distance.great_circle(self.p, p2.p).meters
+    def perp(self, p2):
+        return Point(
+            longitude = self.longitude + (self.latitude - p2.latitude),
+            latitude = self.latitude + (p2.longitude - self.longitude),
+            altitude = self.altitude
+        )

@@ -68,12 +68,14 @@ class StatusDirect(DirectMessage):
 
 class PinorDirect(DirectMessage):
     def __init__(self, uuid, pinor):
-        DirectMessage.__init__(self, uuid)
+        DirectMessage.__init__(self, uuid, img = '')
         self.pinor = pinor
+        self.img = img
     def to_json(self):
         d = DirectMessage.to_json(self)
         d["data"]["pinor"] = [x.to_json() for x in self.pinor]
         d["data"]["datatype"] = "pinor"
+        d["data"]["img"] = self.img
         return d
     @classmethod
     def from_json(cls, d, self=None):
@@ -81,6 +83,7 @@ class PinorDirect(DirectMessage):
             self = cls.__new__(cls)
         self = DirectMessage.from_json(d, self)
         self.pinor = [Point.from_json(x) for x in d["data"]["pinor"]]
+        self.img = d["data"]["img"]
         return self
 
 class StatusMesh(MeshMessage):

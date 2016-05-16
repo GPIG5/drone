@@ -10,13 +10,13 @@ from swarm_controller import SwarmController
 id = lambda x: x
 
 class Reactor:
-    def __init__(self, telemetry):
-        swc = SwarmController(id)
+    def __init__(self, config, data_store, telemetry):
+        swc = SwarmController(id, config["swarm"], data_store, telemetry)
         secc = SectorController(swc.execute_layer)
         c2 = C2Reactor(secc.execute_layer)
         pd = PersonDetector(c2.execute_layer)
         bl = BatteryLifeChecker(pd.execute_layer, telemetry)
-        cd = CollisionDetector(bl.execute_layer)
+        cd = CollisionDetector(bl.execute_layer, data_store, telemetry)
         self.entry = cd.execute_layer
     def run(self):
         return self.entry(Action())

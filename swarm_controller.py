@@ -10,7 +10,7 @@ class State(Enum):
 
 
 class SwarmController(Layer):
-    def __init__(self, config, next, data_store, telemetry):
+    def __init__(self, next, config, data_store, telemetry):
         Layer.__init__(self, next)
         self.state = State.normal
         self.data_store = data_store
@@ -55,7 +55,7 @@ class SwarmController(Layer):
 
     # Checks whether an avoidance move is necessary in the current state
     def avoidance_needed(self):
-        position_of_closest = None  # TODO
+        position_of_closest = Point(0, 0, 0)  # TODO
         current_position = self.telemetry.get_location()
         return current_position.distance_to(position_of_closest) < self.avoidance_radius
 
@@ -66,18 +66,18 @@ class SwarmController(Layer):
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
 
-            position_of_closest = None  # TODO
+            position_of_closest = Point(0,0,0)  # TODO
             current_position = self.telemetry.get_location()
-            avoidance_x = current_position.x + (position_of_closest.x - current_position.x)
-            avoidance_y = current_position.y + (position_of_closest.y - current_position.y)
-            avoidance_z = current_position.z + (position_of_closest.x - current_position.z)
-            self.target = Point(avoidance_x, avoidance_y, avoidance_z)
+            avoidance_latitude = current_position.latitude + (position_of_closest.latitude - current_position.latitude)
+            avoidance_longitude = current_position.longitude + (position_of_closest.longitude - current_position.longitude)
+            avoidance_altitude = current_position.altitude + (position_of_closest.latitude - current_position.altitude)
+            self.target = Point(avoidance_latitude, avoidance_longitude, avoidance_altitude)
 
         self.aggregation_timer = time.time()
         return Action(self.target)
 
     def avoidance_complete(self):
-        return self.telemetry.get_location().distance_to(self.target) < self.telemetry
+        return True #self.telemetry.get_location().distance_to(self.target) < self.telemetry
 
     def coherence_needed(self):
         return self.aggregation_timer - time.time() > self.aggregation_timeout
@@ -88,27 +88,27 @@ class SwarmController(Layer):
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.coherence
 
-            neighbours_in_range = [None, None, None]  # TODO - positions of neighbours in range
+            neighbours_in_range = [Point(0,0,0), Point(0,0,0), Point(0,0,0)]  # TODO - positions of neighbours in range
 
             # We find the center of mass by averaging. Mass of all points is considered 1
             totalmass = 0
-            total_x = 0
-            total_y = 0
-            total_z = 0
+            total_latitude = 0
+            total_longitude = 0
+            total_altitude = 0
             for i in range(len(neighbours_in_range)):
                 totalmass += 1
-                total_x += neighbours_in_range[i].x
-                total_y += neighbours_in_range[i].y
-                total_z += neighbours_in_range[i].z
+                total_latitude += neighbours_in_range[i].latitude
+                total_longitude += neighbours_in_range[i].longitude
+                total_altitude += neighbours_in_range[i].altitude
 
-            self.target = Point(total_x / totalmass, total_y / totalmass, total_z / totalmass)
+            self.target = Point(total_latitude / totalmass, total_y / totalmass, total_altitude / totalmass)
 
         return Action(self.target)
 
     def coherence_complete(self):
-        return self.telemetry.get_location().distance_to(self.target) < self.telemetry
+        return True#self.telemetry.get_location().distance_to(self.target) < self.telemetry
 
     def perform_normal(self, current_output):
         if self.state != State.normal:
             self.state = State.normal
-        return self.next.execute_layer(current_output)
+        return self.next(current_output)
