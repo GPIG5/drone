@@ -31,6 +31,10 @@ class Communicator:
         print(encoded)
 
     @asyncio.coroutine
+    def send_message(self, msg):
+        yield from self.send(msg.to_json())
+
+    @asyncio.coroutine
     def receive(self):
         unencoded_size = yield from self.reader.readexactly(4)
         encoded_size = struct.unpack("!L", unencoded_size)[0]
