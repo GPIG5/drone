@@ -8,24 +8,32 @@ class Point:
     def from_json(cls, d, self=None):
         if self == None:
             self = cls.__new__(cls)
-        self.p.longitude = d["longitude"]
-        self.p.latitude = d["latitude"]
-        self.p.altitude = d["altitude"]
+        self.p = geopy.point.Point(
+            longitude = d["long"],
+            latitude = d["lat"],
+            altitude = d["alt"]
+        )
         return self
     @property
     def latitude(self):
         return self.p.latitude
     @property
     def longitude(self):
-        return self.p.latitude
+        return self.p.longitude
     @property
     def altitude(self):
-        return self.p.latitude
+        return self.p.altitude
     def to_json(self):
         return {
-            "longitude": self.p.longitude,
-            "latitude": self.p.latitude,
-            "altitude": self.p.altitude
+            "long": self.longitude,
+            "lat": self.latitude,
+            "alt": self.altitude
         }
     def distance_to(self, p2):
         return geopy.distance.great_circle(self.p, p2.p).meters
+    def perp(self, p2):
+        return Point(
+            longitude = self.longitude + (self.latitude - p2.latitude),
+            latitude = self.latitude + (p2.longitude - self.longitude),
+            altitude = self.altitude
+        )
