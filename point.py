@@ -19,15 +19,21 @@ class Point:
         return self.p.latitude
     @property
     def longitude(self):
-        return self.p.latitude
+        return self.p.longitude
     @property
     def altitude(self):
-        return self.p.latitude
+        return self.p.altitude
     def to_json(self):
         return {
-            "long": self.p.longitude,
-            "lat": self.p.latitude,
-            "alt": self.p.altitude
+            "long": self.longitude,
+            "lat": self.latitude,
+            "alt": self.altitude
         }
     def distance_to(self, p2):
         return geopy.distance.great_circle(self.p, p2.p).meters
+    def perp(self, p2):
+        return Point(
+            longitude = self.longitude + (self.latitude - p2.latitude),
+            latitude = self.latitude + (p2.longitude - self.longitude),
+            altitude = self.altitude
+        )

@@ -18,6 +18,9 @@ class Datastore:
         else:
             raise "no drone with that uuid"
 
+    def all_drones(self):
+        return self.drone_state
+
     @asyncio.coroutine
     def startup(self):
         while True:
