@@ -20,6 +20,7 @@ class Engine:
             travel_distance = self.speed / self.travel_time
 
             if (target_distance != 0):
+                # algorithm from http://williams.best.vwh.net/avform.htm#Crs
                 if (sin(target_location.longitude - current_location.longitude) < 0):
                     bearing = acos((
                         sin(target_location.latitude) - sin(current_location.latitude) * cos(target_distance)) /
