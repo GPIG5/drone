@@ -17,7 +17,7 @@ class Detection:
     def initialise(self):
         f = yield from aiofiles.open(self.pinor_file, mode='w')
         try:
-            yield from f.write('timestamp,lat,lon,alt,img\n')
+            yield from f.write('timestamp,lon,lat,alt,img\n')
         finally:
             yield from f.close()
 
@@ -43,7 +43,7 @@ class Detection:
             try:
                 for pinor in pinors:
                     point = pinor.to_json()
-                    yield from f.write(timestamp + ',' + point['lat'] + ',' + point['lon'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
+                    yield from f.write(timestamp + ',' + point['lon'] + ',' + point['lat'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
             finally:
                 yield from f.close()
 
