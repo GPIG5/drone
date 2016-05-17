@@ -4,7 +4,7 @@ from math import acos, cos, pi, sin
 from point import Point
 
 class Engine:
-    def __init__(self, config, telemetry, navigator, speed = 2):
+    def __init__(self, config, telemetry, navigator):
         self.telemetry = telemetry
         self.navigator = navigator
         self.speed = config.getint('speed')
@@ -13,8 +13,8 @@ class Engine:
     @asyncio.coroutine
     def startup(self):
         while True:
-            current_location = self.telemetry.get_location().p
-            target_location = self.navigator.get_current_target().p
+            current_location = self.telemetry.get_location()
+            target_location = self.navigator.get_current_target()
 
             target_distance = great_circle(current_location, target_location).meters
             travel_distance = self.speed / self.travel_time
@@ -32,6 +32,6 @@ class Engine:
 
                 travel_destination = great_circle(meters=travel_distance).destination(current_location, bearing)
 
-                self.telemetry.set_location(Point(travel_destination))
+                yield from self.telemetry.set_location(Point(travel_destination))
 
             yield from asyncio.sleep(self.travel_time)

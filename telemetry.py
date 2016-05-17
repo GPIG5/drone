@@ -38,7 +38,7 @@ class Telemetry:
 
     @asyncio.coroutine
     def set_location(self, new_location : Point):
-        with (yield from location_lock):
+        with (yield from self.location_lock):
             self.location = new_location
 
     def get_initial_battery(self):
