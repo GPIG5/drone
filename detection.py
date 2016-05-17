@@ -36,7 +36,7 @@ class Detection:
                 yield from f.close()
 
             # Write co-ords to file
-            f = yield from aiofiles.open(self.pinor_file, mode='w')
+            f = yield from aiofiles.open(self.pinor_file, mode='a')
             try:
                 for pinor in msg.pinor:
                     point = pinor.to_json()
