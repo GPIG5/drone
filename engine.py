@@ -1,26 +1,37 @@
 import asyncio
-import math
+from geopy.distance import great_circle
+from math import acos, cos, pi, sin
 from point import Point
 
 class Engine:
-    def __init__(self, telemetry, navigator, speed = 2):
+    def __init__(self, config, telemetry, navigator, speed = 2):
         self.telemetry = telemetry
         self.navigator = navigator
-        self.speed = 2
+        self.speed = config.getint('speed')
+        self.travel_time = config.getint('travel_time')
 
     @asyncio.coroutine
     def startup(self):
         while True:
-            t = self.navigator.get_current_target()
-            loc = self.telemetry.get_location()
-            d = loc.distance_to(t)
-            if d != 0:
-                distrat = self.speed / d
-                x = (1 / (math.sqrt(2))) * distrat * (t.longitude - loc.longitude)
-                y = (1 / (math.sqrt(2))) * distrat * (t.latitude - loc.latitude)
-                self.telemetry.set_location(Point(
-                    longitude = loc.longitude + x,
-                    latitude = loc.latitude + y,
-                    altitude = loc.altitude
-                ))
-            yield from asyncio.sleep(1)
+            current_location = self.telemetry.get_location().p
+            target_location = self.navigator.get_current_target().p
+
+            target_distance = great_circle(current_location, target_location).meters
+            travel_distance = self.speed / self.travel_time
+
+            if (target_distance != 0):
+                # algorithm from http://williams.best.vwh.net/avform.htm#Crs
+                if (sin(target_location.longitude - current_location.longitude) < 0):
+                    bearing = acos((
+                        sin(target_location.latitude) - sin(current_location.latitude) * cos(target_distance)) /
+                        (sin(target_distance) * cos(current_location.latitude)))
+                else:
+                    bearing = 2 * pi - acos((
+                        sin(target_location.latitude) - sin(current_location.latitude) * cos(target_distance)) /
+                        (sin(target_distance) * cos(current_location.latitude)))
+
+                travel_destination = great_circle(meters=travel_distance).destination(current_location, bearing)
+
+                self.telemetry.set_location(Point(travel_destination))
+
+            yield from asyncio.sleep(self.travel_time)

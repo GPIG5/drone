@@ -13,3 +13,7 @@ data_folder = ./data/
 avoidance_radius = 25
 aggregation_timeout = 10
 target_radius = 5
+
+[engine]
+speed = 2
+travel_time = 1

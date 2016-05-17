@@ -27,7 +27,7 @@ class Drone:
         self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
         self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
         self.mesh_controller = MeshController(self.messagedispatcher, self, self.communicator)
-        self.engine = Engine(self.telemetry, self.navigator)
+        self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
 
     def getUUID(self):
         return str(self.uuid)

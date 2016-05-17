@@ -25,23 +25,20 @@ class Detection:
     def startup(self):
         while True:
             msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor')
-            msg = msg.to_json()
 
             timestr = time.strftime('%Y%m%d%H%M%S')
-            pinors = msg['data']['pinor']
-            img64 = msg['data']['img']
 
             # Write image to file
             f = yield from aiofiles.open(self.data_folder + 'images/' + timestr + '.jpg', mode='wb')
             try:
-                yield from f.write(base64.decodestring(img64.encode()))
+                yield from f.write(base64.decodestring(msg.img.encode()))
             finally:
                 yield from f.close()
 
             # Write co-ords to file
             f = yield from aiofiles.open(self.pinor_file, mode='w')
             try:
-                for pinor in pinors:
+                for pinor in msg.pinor:
                     point = pinor.to_json()
                     yield from f.write(timestamp + ',' + point['lon'] + ',' + point['lat'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
             finally:
