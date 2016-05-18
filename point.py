@@ -30,3 +30,22 @@ class Point(geopy.point.Point):
             latitude = self.latitude + (p2.longitude - self.longitude),
             altitude = self.altitude
         )
+
+class Space:
+    def __init__(self, p1, p2):
+        self.p1 = p1
+        self.p2 = p2
+    def to_json(self):
+        return {
+            "bottom_left": self.p1.to_json,
+            "top_right": self.p2.to_json
+        }
+    @classmethod
+    def from_json(cls, d, self=None):
+        if self == None:
+            self = cls.__new__(cls)
+        self = Space(
+            p1 = d["bottom_left"],
+            p2 = d["top_right"]
+        )
+        return self

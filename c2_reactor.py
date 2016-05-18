@@ -1,7 +1,39 @@
 from layer import *
+import asyncio
 
 class C2Reactor(Layer):
-    def __init__(self, next):
+    def __init__(self, next, message_dispatcher, telemetry):
         Layer.__init__(self, next)
+        self.ts = 0
+        self.returning = False
+        self.current_space = None
+        self.message_dispatcher = message_dispatcher
+        self.telemetry = telemetry
+
     def execute_layer(self, current_output):
-        return Layer.execute_layer(self, current_output)
+        op = Layer.execute_layer(self, current_output)
+        if self.returning:
+            op.move = self.telemetry.get_initial_location()
+        return op
+
+    @asyncio.coroutine
+    def startup(self):
+        yield from asyncio.gather(self.returnjob(), self.deployjob())
+
+    @asyncio.coroutine
+    def returnjob(self):
+        while True:
+            msg = yield from self.message_dispatcher.wait_for_message("mesh", "return")
+            if self.ts < msg.timestamp:
+                self.returning = True
+
+    @asyncio.coroutine
+    def deployjob(self):
+        while True:
+            msg = yield from self.message_dispatcher.wait_for_message("mesh", "deploy")
+            if self.ts < msg.timestamp:
+                self.returning = False
+                self.current_space = msg.space
+
+    def get_current_space(self):
+        return self.current_space

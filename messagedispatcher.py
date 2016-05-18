@@ -23,6 +23,14 @@ class Messagedispatcher:
                 "pinor": {
                     "class": messages.PinorMesh,
                     "queue": Queue()
+                },
+                "return": {
+                    "class": messages.ReturnMesh,
+                    "queue": Queue()
+                },
+                "deploy": {
+                    "class": messages.DeployMesh,
+                    "queue": Queue()
                 }
             }
         }
@@ -42,7 +50,7 @@ class Messagedispatcher:
         while True:
             msg = yield from self.communicator.receive()
             if msg["type"] == "mesh":
-                self.mesh_queue.put(msg)
+                yield from self.mesh_queue.put(msg)
             x = self.messages
             x = x[msg["type"]]
             x = x[msg["data"]["datatype"]]

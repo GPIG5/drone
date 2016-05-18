@@ -26,6 +26,7 @@ class Drone:
         self.datastore = Datastore(self.messagedispatcher)
         self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
         self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
+        self.c2_reactor = self.navigator.c2_reactor
         self.mesh_controller = MeshController(self.messagedispatcher, self, self.communicator)
         self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
 
@@ -63,7 +64,8 @@ class Drone:
             self.navigator,
             self.telemetry,
             self.mesh_controller,
-            self.engine
+            self.engine,
+            self.c2_reactor
         ]
         print("starting main tasks")
         loop.run_until_complete(asyncio.gather(
