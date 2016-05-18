@@ -11,10 +11,13 @@ class Drone:
         self.location = location
 
 
+
 class Datastore:
-    def __init__(self, messagedispatcher):
+    def __init__(self, messagedispatcher, detection_radius):
         self.messagedispatcher = messagedispatcher
         self.drone_state = {}
+        self.detection_radius = detection_radius
+        self.grid_state = None
 
     def get_drone_state(self, uuid):
         if uuid in self.drone_state:
@@ -24,6 +27,12 @@ class Datastore:
 
     def all_drones(self):
         return self.drone_state
+
+    def get_grid_state(self):
+        return self.grid_state
+
+    def set_search_space(self, space):
+        self.grid_state = GridState(space, self.detection_radius)
 
     @asyncio.coroutine
     def startup(self):
@@ -58,7 +67,9 @@ class SectorState(Enum):
 
 
 class GridState:
-    def __init__(self, bottom_left, top_right, detection_radius):
+    def __init__(self, space, detection_radius):
+        bottom_left = space.bottom_left
+        top_right = space.top_right
         self.origin = bottom_left
 
         map_width = top_right.latitude - bottom_left.latitude

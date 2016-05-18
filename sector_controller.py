@@ -25,19 +25,23 @@ class SearchState(Enum):
 
 
 class SectorController(Layer):
-    def __init__(self, next, grid_state, telemetry, detection_radus, target_radius):
+    def __init__(self, next, data_store, telemetry, config):
         Layer.__init__(self, next)
         self.move_target = None  # The target of a move
         self.target_sector = None
-        self.grid_state = grid_state
+        self.data_store = data_store
         self.telemetry = telemetry
         self.state = State.moving
-        self.detection_radius = detection_radus
-        self.target_radius = target_radius  # The radius within which the drone must be to be considered as "arrived"
+        self.detection_radius = config["detection_radius"]
+        self.target_radius = config["target_radius"]  # The radius within which the drone must be to be considered as "arrived"
         self.searching_state = None
         self.calculate_target()
+        self.grid_state = None
 
     def execute_layer(self, current_output):
+        self.grid_state = self.data_store.get_grid_state()
+        if (self.grid_state == None):
+            return Layer.execute_layer(self, current_output)
         if self.state == State.moving:
             if self.within_target():
                 if self.target_unclaimed():
