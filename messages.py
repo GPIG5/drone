@@ -1,4 +1,4 @@
-from point import Point
+from point import Point, Space
 import time
 
 class Message:
@@ -121,4 +121,35 @@ class PinorMesh(MeshMessage):
             self = cls.__new__(cls)
         self = MeshMessage.from_json(d, self)
         self.pinor = [Point.from_json(x) for x in d["data"]["pinor"]]
+        return self
+
+class ReturnMesh(MeshMessage):
+    def __init__(self, uuid, origin):
+        MeshMessage.__init__(self, uuid, origin)
+    def to_json(self):
+        d = MeshMessage.to_json(self)
+        d["data"]["datatype"] = "return"
+        return d
+    @classmethod
+    def from_json(cls, d, self=None):
+        if self == None:
+            self = cls.__new__(cls)
+        self = MeshMessage.from_json(d, self)
+        return self
+
+class DeployMesh(MeshMessage):
+    def __init__(self, uuid, origin, space):
+        MeshMessage.__init__(self, uuid, origin)
+        self.space = space
+    def to_json(self):
+        d = MeshMessage.to_json(self)
+        d["data"]["space"] = self.space.to_json()
+        d["data"]["datatype"] = "deploy"
+        return d
+    @classmethod
+    def from_json(cls, d, self=None):
+        if self == None:
+            self = cls.__new__(cls)
+        self = MeshMessage.from_json(d, self)
+        self.space = Space.from_json(d["data"]["space"])
         return self

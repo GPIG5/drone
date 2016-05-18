@@ -31,8 +31,22 @@ class Point(geopy.point.Point):
             altitude = self.altitude
         )
 
+class Space:
+    def __init__(self, bottom_left, top_right):
+        self.bottom_left = bottom_left
+        self.top_right = top_right
+    def to_json(self):
+        return {
+            "bottom_left": self.bottom_left.to_json,
+            "top_right": self.top_right.to_json
+        }
+    @classmethod
+    def from_json(cls, d, self=None):
+        if self == None:
+            self = cls.__new__(cls)
+        self = Space(
+            bottom_left = d["bottom_left"],
+            top_right = d["top_right"]
+        )
+        return self
 
-class Sector:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
