@@ -25,6 +25,22 @@ class Datastore:
     def all_drones(self):
         return self.drone_state
 
+    def get_position_of_drone_closest_to(self, position):
+        closest = None
+        for i in range(len(self.drone_state)):
+            distance = position.distance_to(self.drone_state[i].location)
+            if closest is None | closest > distance:
+                closest = self.drone_state[i].location
+        return closest
+
+    def drones_in_range_of(self, position, range):
+        locations_in_range = []
+        for i in range(len(self.drone_state)):
+            distance = position.distance_to(self.drone_state[i].location)
+            if distance < range:
+                locations_in_range.append(self.drone_state[i].location)
+        return locations_in_range
+
     @asyncio.coroutine
     def startup(self):
         while True:
