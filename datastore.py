@@ -1,11 +1,15 @@
-from enum import IntEnum
+from enum import Enum
 import asyncio
+
+import itertools
+
 
 class Drone:
     def __init__(self, uuid, battery, location):
         self.uuid = uuid
         self.battery = battery
         self.location = location
+
 
 class Datastore:
     def __init__(self, messagedispatcher):
@@ -29,32 +33,58 @@ class Datastore:
             self.drone_state[d.uuid] = d
             print("got message from" + d.uuid)
 
-class SquareState(IntEnum):
-    searched = -1
-    notSearched = -2
-    shouldNotSearch = -3
+
+class SectorState(Enum):
+    searched = 1
+    notSearched = 2
+    shouldNotSearch = 3
+    being_searched = 4
+
+
+class SectorIndex:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.x == other.x and self.y == other.y
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return self.x * self.y
 
 
 # gridState.grid[x][y] - status of the (x,y) sector
 class GridState:
-    def __init__(self, x0, y0, x_length, y_length, square_width, square_height):
-        self.x0 = x0
-        self.y0 = y0
-        self.x_length = x_length
-        self.y_length = y_length
-        self.square_width = square_width
-        self.square_height = square_height
-        self.grid = [0 for i in range(x_length)]
-        for i in range(x_length):
-            self.grid[i] = [SquareState.notSearched for i in range(y_length)]
+    def __init__(self, bottom_left, top_right, detection_radius):
+        self.origin = bottom_left
 
-    # Checks whether the given position is within the sector
-    def position_within_sector(self, x_of_sector, y_of_sector, position):
-        leftmost_x = x_of_sector
-        rightmost_x = x_of_sector + self.square_width
-        bottom_y = y_of_sector
-        top_y = y_of_sector + self.square_height
-        return position.x > leftmost_x & position.x < rightmost_x & position.y < top_y & position.y > bottom_y
+        map_width = top_right.latitude - bottom_left.latitude
+        map_height = top_right.longitude - bottom_left.longitude
+
+        pre_sector_height = 5 * detection_radius
+        pre_sector_width = 5 * detection_radius
+
+        self.y_count = int(map_height / pre_sector_height) + 1
+        self.x_count = int(map_width / pre_sector_width) + 1
+
+        self.sector_height = map_height / self.y_count
+        self.sector_width = map_width / self.x_count
+
+        self.sector_state = {SectorIndex(i, j): SectorState.notSearched
+                             for i, j in itertools.product(range(self.x_count), range(self.x_count))}
+
+        # Checks whether the given position is within the sector
+        # def position_within_sector(self, sector_index, position):
+        #     leftmost_latitude = sector_index.x
+        #     rightmost_x = x_of_sector + self.square_width
+        #     bottom_y = y_of_sector
+        #     top_y = y_of_sector + self.square_height
+        #     return position.x > leftmost_x & position.x < rightmost_x & position.y < top_y & position.y > bottom_y
 
 
 class Neighbours:
@@ -84,4 +114,3 @@ class NeighbourState:
 
     def update_position(self, position):
         self.position = position
-
