@@ -32,21 +32,21 @@ class Point(geopy.point.Point):
         )
 
 class Space:
-    def __init__(self, p1, p2):
-        self.p1 = p1
-        self.p2 = p2
+    def __init__(self, bottom_left, top_right):
+        self.bottom_left = bottom_left
+        self.top_right = top_right
     def to_json(self):
         return {
-            "bottom_left": self.p1.to_json,
-            "top_right": self.p2.to_json
+            "bottom_left": self.bottom_left.to_json,
+            "top_right": self.top_right.to_json
         }
     @classmethod
     def from_json(cls, d, self=None):
         if self == None:
             self = cls.__new__(cls)
         self = Space(
-            p1 = d["bottom_left"],
-            p2 = d["top_right"]
+            bottom_left = d["bottom_left"],
+            top_right = d["top_right"]
         )
         return self
 
