@@ -18,9 +18,17 @@ class UnspecifiedState(Exception):
         return "The SectorContoller ended up in an invalid state: " + repr(self.value)
 
 
+class SearchState(Enum):
+    initial = 0
+    moving_left = 1
+    moving_right = 2
+    moving_down = 3
+
+
 class SectorController(Layer):
     def __init__(self, next, grid_state, telemetry, detection_radus, target_radius):
         Layer.__init__(self, next)
+        self.target = None  # The target of a move
         self.target_sector_x = None
         self.target_sector_y = None
         self.grid_state = grid_state
@@ -28,6 +36,7 @@ class SectorController(Layer):
         self.state = State.moving
         self.detection_radius = detection_radus
         self.target_radius = target_radius
+        self.searching_state = None
 
     def execute_layer(self, current_output):
         if self.state == State.moving:
@@ -64,17 +73,15 @@ class SectorController(Layer):
 
     def perform_search(self):
 
-        # TODO Not right - either consider only the square within detection radius or move full square width
-
         if self.state != State.searching:
             # Start at top-left and scan through until the bottom right is within range
             current_position = self.telemetry.get_location()
-            target_sector = self.target_sector
+            target_sector = self.target_sector  # TODO
             top_left = None  # TODO calculation from target sector
             detection_radius = self.detection_radius
-            target_long = top_left.longitude - detection_radius / math.sqrt(2)
-            target_lat = top_left.latitude + detection_radius / math.sqrt(2)
-            self.target = Point(target_long, target_lat, current_position.altitude)  # TODO is this correct?
+            target_long = top_left.longitude - detection_radius
+            self.target = Point(target_long, top_left.latitude, current_position.altitude)  # TODO is this correct?
+            self.searching_state = SearchState.initial
 
         # If you are close enough to target calculate next target/do not move if complete
         if self.telemetry.get_location.distance_to(self.target) < self.target_radius:
@@ -83,23 +90,34 @@ class SectorController(Layer):
             bottom_left = None  # TODO obtain from grid state
             bottom_right = None  # TODO obtain from grid state
 
-            # TODO isn't right - right-left move not considered
+            old_target = self.target
 
-            # If left is closer than right then we move right, otherwise we move down
-            if current_position.x - bottom_left.x < bottom_right.x - current_position.x:
-                old_target = self.target
+            if self.searching_state == SearchState.initial:
+                self.searching_state = SearchState.moving_right
+                self.target = Point(old_target.longitude, bottom_right.latitude, old_target.altitude)
+                pass
+            elif self.searching_state == SearchState.moving_right & self.searching_state == SearchState.moving_left:
+                self.searching_state = SearchState.moving_down
                 self.target = Point(
-                    longitude=old_target.longitude,
-                    latitude=bottom_right.latitude - (self.detection_radius / math.sqrt(2)),
-                    altitude=old_target.altitude
-                )
-            else:
-                old_target = self.target
-                self.target = Point(
-                    longitude=old_target.longitude - 2 * self.detection_radius,
+                    longitude=old_target.longitude-2*self.detection_radius,
                     latitude=old_target.latitude,
                     altitude=old_target.altitude
                 )
+            elif self.searching_state == SearchState.moving_down:
+                if old_target.latitude == bottom_left.latitude:
+                    self.searching_state = SearchState.moving_right
+                    self.target = Point(
+                        longitude=old_target.longitude,
+                        latitude=bottom_right.latitude,
+                        altitude=old_target.altitude
+                    )
+                else:
+                    self.searching_state = SearchState.moving_left
+                    self.target = Point(
+                        longitude=old_target.longitude,
+                        latitude=bottom_left.latitude,
+                        altitude=old_target.altitude
+                    )
         return Action(self.target)
 
     def calculate_target(self):
@@ -115,8 +133,8 @@ class SectorController(Layer):
         # If the number of trips required for a sector to be covered is even, then the search will
         # be complete when the bottom-left corner is in range; otherwise we look for bottom-right
         sector_height = 0  # TODO
-        trip_count = ((sector_height - self.detection_radius / math.sqrt(2) - self.detection_radius) /
-                      2 * self.detection_radius) + 1
+        trip_count_float = sector_height / (self.detection_radius*2)
+        trip_count = int(trip_count_float) + 1 if trip_count_float - int(trip_count_float) > 0 else 0
 
         current_location = self.telemetry.get_location()
 
@@ -126,5 +144,4 @@ class SectorController(Layer):
             return current_location.distance_to(bottom_left) < self.detection_radius
         else:
             # otherwise we are looking for bottom-right
-            bottom_right = None
             return current_location.distance_to(bottom_right) < self.detection_radius
