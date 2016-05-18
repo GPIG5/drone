@@ -94,6 +94,14 @@ class GridState:
     def drone_of(self, sector_index):
         return self.sector_state[sector_index][1]
 
+    # returns: bottm-left, bottom-right, top-left, top-right as a list
+    def get_sector_corners(self, sector_index):
+        bottom_left = self.get_sector_origin(sector_index)
+        bottom_right = Point(bottom_left.longitude, bottom_left.latitude + self.sector_width, bottom_left.altitude)
+        top_left = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude, bottom_left.altitude)
+        top_right = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude + self.sector_width, bottom_left.altitude)
+        return [bottom_left, bottom_right, top_left, top_right]
+
     def get_sector_origin(self, sector_index):
         latitude = self.origin.latitude + sector_index.x * self.sector_width
         longitude = self.origin.longitude + sector_index.y * self.sector_height
