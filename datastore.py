@@ -16,7 +16,7 @@ class Datastore:
     def __init__(self, messagedispatcher, detection_radius):
         self.messagedispatcher = messagedispatcher
         self.drone_state = {}
-        self.detection_radius = detection_radius
+        self.detection_radius = float(detection_radius)
         self.grid_state = None
 
     def get_drone_state(self, uuid):
@@ -114,8 +114,8 @@ class GridState:
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
-        latitude = self.origin.latitude + sector_index.x * self.sector_width
-        longitude = self.origin.longitude + sector_index.y * self.sector_height
+        latitude = self.origin.latitude + sector_index.latitude * self.sector_width
+        longitude = self.origin.longitude + sector_index.longitude * self.sector_height
         return Point(longitude, latitude, self.origin.altitude)
 
 # class Neighbours:

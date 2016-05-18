@@ -123,7 +123,7 @@ class SectorController(Layer):
         pass
 
     def move_to_target(self):
-        pass
+        return Layer.execute_layer(self, current_output)
 
     def search_complete(self):
 

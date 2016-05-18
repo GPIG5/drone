@@ -22,7 +22,7 @@ class MeshController:
             l = self.origin_map[origin]
             if ts in l:
                 return False
-            elif len(l) < max_messages:
+            elif len(l) < self.max_messages:
                 bisect.insort(l, ts)
                 return True
             elif ts < l[0]:

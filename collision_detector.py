@@ -14,6 +14,6 @@ class CollisionDetector(Layer):
             if collide == None or d < collide_dist:
                 collide = drone.location
                 collide_dist = d
-        if collide != None and collide_dist <= 10:
+        if collide is not None and collide_dist <= 10:
             op.move = self.telemetry.get_location().perp(collide)
         return op
