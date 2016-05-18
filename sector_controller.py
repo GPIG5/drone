@@ -127,16 +127,17 @@ class SectorController(Layer):
         # A "trip" is a single traversal of the sector from left to right or from right to left
         # If the number of trips required for a sector to be covered is even, then the search will
         # be complete when the bottom-left corner is in range; otherwise we look for bottom-right
-        sector_height = 0  # TODO
+        sector_height = self.grid_state.sector_height
         trip_count_float = sector_height / (self.detection_radius * 2)
         trip_count = int(trip_count_float) + 1 if trip_count_float - int(trip_count_float) > 0 else 0
 
         current_location = self.telemetry.get_location()
 
+        corners = self.grid_state.get_sector_corners(self.target_sector)
+
         if trip_count % 2 == 0:
             # If the number of trips is even, then we are looking for bottom-left corner in range
-            bottom_left = None  # TODO
-            return current_location.distance_to(bottom_left) < self.detection_radius
+            return current_location.distance_to(corners[0]) < self.detection_radius
         else:
             # otherwise we are looking for bottom-right
-            return current_location.distance_to(bottom_right) < self.detection_radius
+            return current_location.distance_to(corners[1]) < self.detection_radius
