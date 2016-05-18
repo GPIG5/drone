@@ -116,10 +116,12 @@ class SectorController(Layer):
         return Action(self.move_target)
 
     def calculate_target(self):
-        pass
+        current_position = self.telemetry.get_location()
+        self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
+        self.move_target = self.grid_state.get_distance_to(self.target_sector, current_position)
 
     def move_to_target(self):
-        pass
+        return Action(self.move_target)
 
     def search_complete(self):
 
