@@ -30,3 +30,9 @@ class Point(geopy.point.Point):
             latitude = self.latitude + (p2.longitude - self.longitude),
             altitude = self.altitude
         )
+
+
+class Sector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
