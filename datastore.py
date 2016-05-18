@@ -28,6 +28,22 @@ class Datastore:
     def all_drones(self):
         return self.drone_state
 
+    def get_position_of_drone_closest_to(self, position):
+        closest = None
+        for i in range(len(self.drone_state)):
+            distance = position.distance_to(self.drone_state[i].location)
+            if closest is None | closest > distance:
+                closest = self.drone_state[i].location
+        return closest
+
+    def drones_in_range_of(self, position, range):
+        locations_in_range = []
+        for i in range(len(self.drone_state)):
+            distance = position.distance_to(self.drone_state[i].location)
+            if distance < range:
+                locations_in_range.append(self.drone_state[i].location)
+        return locations_in_range
+
     def get_grid_state(self):
         return self.grid_state
 
@@ -48,6 +64,7 @@ class SectorState(Enum):
     notSearched = 2
     shouldNotSearch = 3
     being_searched = 4
+
 
 # class SectorIndex:
 #     def __init__(self, x, y):
@@ -85,7 +102,7 @@ class GridState:
         self.sector_width = map_width / self.x_count
 
         self.sector_state = {(i, j): (SectorState.notSearched, 0)
-                             for i, j in itertools.product(range(self.x_count), range(self.x_count))}
+                             for i, j in itertools.product(range(self.x_count), range(self.y_count))}
 
     # Checks whether the given position is within the sector
     def position_within_sector(self, sector_index, position):
@@ -110,13 +127,27 @@ class GridState:
         bottom_left = self.get_sector_origin(sector_index)
         bottom_right = Point(bottom_left.longitude, bottom_left.latitude + self.sector_width, bottom_left.altitude)
         top_left = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude, bottom_left.altitude)
-        top_right = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude + self.sector_width, bottom_left.altitude)
+        top_right = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude + self.sector_width,
+                          bottom_left.altitude)
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
         latitude = self.origin.latitude + sector_index.latitude * self.sector_width
         longitude = self.origin.longitude + sector_index.longitude * self.sector_height
         return Point(longitude, latitude, self.origin.altitude)
+
+    def get_closest_unclaimed(self, position):
+        min_distance = None
+        for i, j in itertools.product(range(self.x_count), range(self.y_count)):
+            if self.state_for((i, j)) == SectorState.notSearched:
+                distance = self.get_distance_to((i, j), position)
+                if min_distance is None | min_distance[1] > distance:
+                    min_distance = ((i, j), distance)
+        return min_distance[0]
+
+    def get_distance_to(self, sector_index, position):
+        corners = self.get_sector_corners(sector_index)
+        return min([position.distance_to(corners[i]) for i in range(4)])
 
 # class Neighbours:
 #     def __init__(self, number_of_neighbours):

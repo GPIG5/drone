@@ -35,13 +35,16 @@ class SectorController(Layer):
         self.detection_radius = config["detection_radius"]
         self.target_radius = config["target_radius"]  # The radius within which the drone must be to be considered as "arrived"
         self.searching_state = None
-        self.calculate_target()
         self.grid_state = None
 
     def execute_layer(self, current_output):
         self.grid_state = self.data_store.get_grid_state()
         if (self.grid_state == None):
             return Layer.execute_layer(self, current_output)
+
+        if self.target_sector is None:
+            self.calculate_target()
+
         if self.state == State.moving:
             if self.within_target():
                 if self.target_unclaimed():
@@ -120,10 +123,12 @@ class SectorController(Layer):
         return Action(self.move_target)
 
     def calculate_target(self):
-        pass
+        current_position = self.telemetry.get_location()
+        self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
+        self.move_target = self.grid_state.get_distance_to(self.target_sector, current_position)
 
     def move_to_target(self):
-        return Layer.execute_layer(self, current_output)
+        return Action(self.move_target)
 
     def search_complete(self):
 

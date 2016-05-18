@@ -22,6 +22,7 @@ class SwarmController(Layer):
         self.avoidance_radius = config.getint('avoidance_radius')
         self.aggregation_timeout = config.getint('aggregation_timeout')
         self.target_radius = config.getint('target_radius')
+        self.radio_radius = config.getint('radio_radius')
 
     def execute_layer(self, current_output):
         if self.state == State.normal:
@@ -55,8 +56,8 @@ class SwarmController(Layer):
 
     # Checks whether an avoidance move is necessary in the current state
     def avoidance_needed(self):
-        position_of_closest = Point(0, 0, 0)  # TODO
         current_position = self.telemetry.get_location()
+        position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
         return current_position.distance_to(position_of_closest) < self.avoidance_radius
 
     # Returns an action that needs to be taken for avoidance
@@ -66,7 +67,9 @@ class SwarmController(Layer):
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
 
-            position_of_closest = Point(0,0,0)  # TODO
+            current_position = self.telemetry.get_location()
+            position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
+
             current_position = self.telemetry.get_location()
             avoidance_latitude = current_position.latitude + (position_of_closest.latitude - current_position.latitude)
             avoidance_longitude = current_position.longitude + (position_of_closest.longitude - current_position.longitude)
@@ -77,18 +80,18 @@ class SwarmController(Layer):
         return Action(self.target)
 
     def avoidance_complete(self):
-        return True #self.telemetry.get_location().distance_to(self.target) < self.telemetry
+        return self.telemetry.get_location().distance_to(self.target) < self.target_radius
 
     def coherence_needed(self):
         return self.aggregation_timer - time.time() > self.aggregation_timeout
 
     def perform_coherence(self):
-
         if self.state != State.coherence:
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.coherence
 
-            neighbours_in_range = [Point(0,0,0), Point(0,0,0), Point(0,0,0)]  # TODO - positions of neighbours in range
+            current_position = self.telemetry.get_location()
+            neighbours_in_range = self.data_store.drones_in_range(current_position, self.radio_radius)
 
             # We find the center of mass by averaging. Mass of all points is considered 1
             totalmass = 0
@@ -101,12 +104,12 @@ class SwarmController(Layer):
                 total_longitude += neighbours_in_range[i].longitude
                 total_altitude += neighbours_in_range[i].altitude
 
-            self.target = Point(total_latitude / totalmass, total_y / totalmass, total_altitude / totalmass)
+            self.target = Point(total_longitude / totalmass, total_latitude / totalmass, total_altitude / totalmass)
 
         return Action(self.target)
 
     def coherence_complete(self):
-        return True#self.telemetry.get_location().distance_to(self.target) < self.telemetry
+        return self.telemetry.get_location().distance_to(self.target) < self.target_radius
 
     def perform_normal(self, current_output):
         if self.state != State.normal:
