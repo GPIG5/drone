@@ -53,7 +53,7 @@ class SwarmController(Layer):
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
-                return self.perform_coherence()
+                return self.perform_avoidance()
 
     # Checks whether an avoidance move is necessary in the current state
     def avoidance_needed(self):
