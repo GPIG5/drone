@@ -93,10 +93,10 @@ class GridState:
                           bottom_left.latitude + self.sector_width,
                           self.origin.altitude)
 
-        return position.latitude > bottom_left.latitude & \
-                                   position.latitude < top_right.latitude & \
-                                                       position.longitude > bottom_left.longitude & \
-                                                                            position.longitude < top_right.longitude
+        return position.latitude > bottom_left.latitude and
+               position.latitude < top_right.latitude and
+               position.longitude > bottom_left.longitude and
+               position.longitude < top_right.longitude
 
     def state_for(self, sector_index):
         return self.sector_state[sector_index][0]
@@ -123,7 +123,7 @@ class GridState:
         for i, j in itertools.product(range(self.x_count), range(self.y_count)):
             if self.state_for((i, j)) == SectorState.notSearched:
                 distance = self.get_distance_to((i, j), position)
-                if min_distance is None | min_distance[1] > distance:
+                if min_distance is None or min_distance[1] > distance:
                     min_distance = ((i, j), distance)
         return min_distance[0]
 

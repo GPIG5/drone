@@ -98,7 +98,7 @@ class SectorController(Layer):
                 self.searching_state = SearchState.moving_right
                 self.move_target = Point(old_target.longitude, bottom_right.latitude, old_target.altitude)
                 pass
-            elif self.searching_state == SearchState.moving_right & self.searching_state == SearchState.moving_left:
+            elif self.searching_state == SearchState.moving_right and self.searching_state == SearchState.moving_left:
                 self.searching_state = SearchState.moving_down
                 self.move_target = Point(
                     longitude=old_target.longitude - 2 * self.detection_radius,
