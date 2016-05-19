@@ -16,7 +16,7 @@ from engine import Engine
 
 class Drone:
     def __init__(self, config):
-        self.uuid = "lol"#uuid.uuid4()
+        self.uuid = uuid.uuid4()
         self.config = config
         config.set('DEFAULT', 'uuid', str(self.uuid))
 

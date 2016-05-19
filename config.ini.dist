@@ -4,7 +4,7 @@ port = 5555
 
 [telemetry]
 battery_size = 1800
-start_location = (0,0,0)
+start_location = (53.929472,-1.165084,100)
 
 [detection]
 data_folder = ./data/

@@ -132,8 +132,8 @@ class GridState:
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
-        latitude = self.origin.latitude + sector_index.latitude * self.sector_width
-        longitude = self.origin.longitude + sector_index.longitude * self.sector_height
+        latitude = self.origin.latitude + sector_index[0] * self.sector_width
+        longitude = self.origin.longitude + sector_index[1] * self.sector_height
         return Point(longitude, latitude, self.origin.altitude)
 
     def get_closest_unclaimed(self, position):
