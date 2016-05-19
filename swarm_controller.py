@@ -25,6 +25,9 @@ class SwarmController(Layer):
         self.radio_radius = config.getint('radio_radius')
 
     def execute_layer(self, current_output):
+
+        print ("SWARM STATE: " + str(self.state))
+
         if self.state == State.normal:
             # 1. Check if avoidance needed
             if self.avoidance_needed():
