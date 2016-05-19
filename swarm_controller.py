@@ -132,6 +132,7 @@ class SwarmController(Layer):
                 self.target = current_position
 
             print("COHERENCE INITIATED TOWARDS: " + str(self.target))
+            print("CURRENT POSITION: " + str(current_position))
 
         return Action(self.target)
 
