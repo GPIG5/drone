@@ -49,6 +49,7 @@ class SwarmController(Layer):
         elif self.state == State.avoidance:
             # If avoidance complete return to normal; otherwise continue with avoidance
             if self.avoidance_complete():
+                print("AVOIDANCE COMPLETE")
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
