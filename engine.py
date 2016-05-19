@@ -16,7 +16,7 @@ class Engine:
             current_location = self.telemetry.get_location()
             target_location = self.navigator.get_current_target()
 
-            target_distance = great_circle(current_location, target_location).kilometers
+            target_distance = great_circle(current_location, target_location).meters
             travel_distance = self.speed / self.travel_time
             travel_distance = target_distance if target_distance < travel_distance else travel_distance
 
