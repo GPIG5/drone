@@ -70,9 +70,10 @@ class GridState:
         bottom_left = space.bottom_left
         top_right = space.top_right
         self.origin = bottom_left
+        self.origin.altitude = 100
 
-        map_width = top_right.latitude - bottom_left.latitude
-        map_height = top_right.longitude - bottom_left.longitude
+        map_height = top_right.latitude - bottom_left.latitude
+        map_width = top_right.longitude - bottom_left.longitude
 
         pre_sector_height = 5 * detection_radius
         pre_sector_width = 5 * detection_radius
@@ -89,14 +90,15 @@ class GridState:
     # Checks whether the given position is within the sector
     def position_within_sector(self, sector_index, position):
         bottom_left = self.get_sector_origin(sector_index)
-        top_right = Point(bottom_left.longitude + self.sector_height,
-                          bottom_left.latitude + self.sector_width,
-                          self.origin.altitude)
+        top_right = Point(
+            latitude = bottom_left.latitude + self.sector_width,
+            longitude = bottom_left.longitude + self.sector_height,
+            altitude = self.origin.altitude)
 
-        return position.latitude > bottom_left.latitude & \
-                                   position.latitude < top_right.latitude & \
-                                                       position.longitude > bottom_left.longitude & \
-                                                                            position.longitude < top_right.longitude
+        return position.latitude > bottom_left.latitude and \
+               position.latitude < top_right.latitude and \
+               position.longitude > bottom_left.longitude and \
+               position.longitude < top_right.longitude
 
     def state_for(self, sector_index):
         return self.sector_state[sector_index][0]
@@ -107,23 +109,34 @@ class GridState:
     # returns: bottm-left, bottom-right, top-left, top-right as a list
     def get_sector_corners(self, sector_index):
         bottom_left = self.get_sector_origin(sector_index)
-        bottom_right = Point(bottom_left.longitude, bottom_left.latitude + self.sector_width, bottom_left.altitude)
-        top_left = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude, bottom_left.altitude)
-        top_right = Point(bottom_left.longitude + self.sector_height, bottom_left.latitude + self.sector_width,
-                          bottom_left.altitude)
+        bottom_right = Point(
+            latitude = bottom_left.latitude + self.sector_width,
+            longitude = bottom_left.longitude,
+            altitude = bottom_left.altitude)
+        top_left = Point(
+            latitude = bottom_left.latitude,
+            longitude = bottom_left.longitude + self.sector_height,
+            altitude = bottom_left.altitude)
+        top_right = Point(
+            latitude = bottom_left.latitude + self.sector_width,
+            longitude = bottom_left.longitude + self.sector_height,
+            altitude = bottom_left.altitude)
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
         latitude = self.origin.latitude + sector_index[0] * self.sector_width
         longitude = self.origin.longitude + sector_index[1] * self.sector_height
-        return Point(longitude, latitude, self.origin.altitude)
+        return Point(
+            latitude = latitude,
+            longitude = longitude,
+            altitude = self.origin.altitude)
 
     def get_closest_unclaimed(self, position):
         min_distance = None
         for i, j in itertools.product(range(self.x_count), range(self.y_count)):
             if self.state_for((i, j)) == SectorState.notSearched:
                 distance = self.get_distance_to((i, j), position)
-                if min_distance is None | min_distance[1] > distance:
+                if min_distance is None or min_distance[1] > distance:
                     min_distance = ((i, j), distance)
         return min_distance[0]
 

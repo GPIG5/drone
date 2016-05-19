@@ -32,8 +32,8 @@ class SectorController(Layer):
         self.data_store = data_store
         self.telemetry = telemetry
         self.state = State.moving
-        self.detection_radius = config["detection_radius"]
-        self.target_radius = config["target_radius"]  # The radius within which the drone must be to be considered as "arrived"
+        self.detection_radius = config.getfloat('detection_radius')
+        self.target_radius = config.getfloat('target_radius')  # The radius within which the drone must be to be considered as "arrived"
         self.searching_state = None
         self.grid_state = None
 
@@ -83,11 +83,14 @@ class SectorController(Layer):
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
             detection_radius = self.detection_radius
             target_long = top_left.longitude - detection_radius
-            self.move_target = Point(target_long, top_left.latitude, current_position.altitude)
+            self.move_target = Point(
+                latitude = top_left.latitude,
+                longitude = target_long,
+                altitude = current_position.altitude)
             self.searching_state = SearchState.initial
 
         # If you are close enough to target calculate next target/do not move if complete
-        if self.telemetry.get_location.distance_to(self.move_target) < self.target_radius:
+        if self.telemetry.get_location().distance_to(self.move_target) < self.target_radius:
             corners = self.grid_state.get_sector_corners(self.target_sector)
             bottom_left = corners[0]
             bottom_right = corners[1]
@@ -96,9 +99,12 @@ class SectorController(Layer):
 
             if self.searching_state == SearchState.initial:
                 self.searching_state = SearchState.moving_right
-                self.move_target = Point(old_target.longitude, bottom_right.latitude, old_target.altitude)
+                self.move_target = Point(
+                    latitude = bottom_right.latitude,
+                    longitude = old_target.longitude,
+                    altitude = old_target.altitude)
                 pass
-            elif self.searching_state == SearchState.moving_right & self.searching_state == SearchState.moving_left:
+            elif self.searching_state == SearchState.moving_right and self.searching_state == SearchState.moving_left:
                 self.searching_state = SearchState.moving_down
                 self.move_target = Point(
                     longitude=old_target.longitude - 2 * self.detection_radius,
@@ -125,7 +131,8 @@ class SectorController(Layer):
     def calculate_target(self):
         current_position = self.telemetry.get_location()
         self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
-        self.move_target = self.grid_state.get_distance_to(self.target_sector, current_position)
+        self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
+        print('Move Target: ' + str(self.move_target))
 
     def move_to_target(self):
         return Action(self.move_target)

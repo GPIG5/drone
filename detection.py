@@ -26,7 +26,7 @@ class Detection:
         while True:
             msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor')
 
-            timestamp = time.time()
+            timestamp = str(time.time())
             timestr = time.strftime('%Y%m%d%H%M%S')
 
             # Write image to file
@@ -41,7 +41,7 @@ class Detection:
             try:
                 for pinor in msg.pinor:
                     point = pinor.to_json()
-                    yield from f.write(timestamp + ',' + point['lon'] + ',' + point['lat'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
+                    yield from f.write(timestamp + ',' + str(point['lon']) + ',' + str(point['lat']) + ',' + str(point['alt']) + ',' + timestr + '.jpg' + '\n')
             finally:
                 yield from f.close()
 

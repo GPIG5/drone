@@ -58,7 +58,7 @@ class SwarmController(Layer):
     def avoidance_needed(self):
         current_position = self.telemetry.get_location()
         position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
-        
+
         if position_of_closest is not None:
             return current_position.distance_to(position_of_closest) < self.avoidance_radius
         else:
@@ -78,7 +78,10 @@ class SwarmController(Layer):
             avoidance_longitude = current_position.longitude + (position_of_closest.longitude - current_position.longitude)
             avoidance_altitude = current_position.altitude + (position_of_closest.latitude - current_position.altitude)
 
-            self.target = Point(avoidance_latitude, avoidance_longitude, avoidance_altitude)
+            self.target = Point(
+                latitude = avoidance_latitude,
+                longitude = avoidance_longitude,
+                altitude = avoidance_altitude)
 
         self.aggregation_timer = time.time()
         return Action(self.target)
@@ -87,7 +90,7 @@ class SwarmController(Layer):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
 
     def coherence_needed(self):
-        return self.aggregation_timer - time.time() > self.aggregation_timeout
+        return time.time() - self.aggregation_timer > self.aggregation_timeout
 
     def perform_coherence(self):
         if self.state != State.coherence:
@@ -108,7 +111,10 @@ class SwarmController(Layer):
                 total_longitude += neighbours_in_range[i].longitude
                 total_altitude += neighbours_in_range[i].altitude
 
-            self.target = Point(total_longitude / totalmass, total_latitude / totalmass, total_altitude / totalmass)
+            self.target = Point(
+                latitude = total_latitude / totalmass,
+                longitude = total_longitude / totalmass,
+                altitude = total_altitude / totalmass)
 
         return Action(self.target)
 
