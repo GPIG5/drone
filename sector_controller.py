@@ -90,7 +90,7 @@ class SectorController(Layer):
             self.searching_state = SearchState.initial
 
         # If you are close enough to target calculate next target/do not move if complete
-        if self.telemetry.get_location.distance_to(self.move_target) < self.target_radius:
+        if self.telemetry.get_location().distance_to(self.move_target) < self.target_radius:
             corners = self.grid_state.get_sector_corners(self.target_sector)
             bottom_left = corners[0]
             bottom_right = corners[1]

@@ -90,7 +90,7 @@ class SwarmController(Layer):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
 
     def coherence_needed(self):
-        return self.aggregation_timer - time.time() > self.aggregation_timeout
+        return time.time() - self.aggregation_timer > self.aggregation_timeout
 
     def perform_coherence(self):
         if self.state != State.coherence:
