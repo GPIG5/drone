@@ -93,9 +93,9 @@ class GridState:
                           bottom_left.latitude + self.sector_width,
                           self.origin.altitude)
 
-        return position.latitude > bottom_left.latitude and
-               position.latitude < top_right.latitude and
-               position.longitude > bottom_left.longitude and
+        return position.latitude > bottom_left.latitude and \
+               position.latitude < top_right.latitude and \
+               position.longitude > bottom_left.longitude and \
                position.longitude < top_right.longitude
 
     def state_for(self, sector_index):
