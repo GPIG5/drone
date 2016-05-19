@@ -18,6 +18,7 @@ class Engine:
 
             target_distance = great_circle(current_location, target_location).kilometers
             travel_distance = self.speed / self.travel_time
+            travel_distance = target_distance if target_distance < travel_distance else travel_distance
 
             if (target_distance != 0):
                 # algorithm from http://williams.best.vwh.net/avform.htm#Crs
