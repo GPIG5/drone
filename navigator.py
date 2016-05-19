@@ -22,7 +22,7 @@ class Navigator:
         while True:
             action = self.reactor.run()
             if action is not None:
-                if action.has_move:
+                if action.has_move():
                     self.current_target = action.move
             yield from asyncio.sleep(1)
 

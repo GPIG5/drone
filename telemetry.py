@@ -54,4 +54,4 @@ class Telemetry:
         return self.battery_size - elapsed_time
 
     def recharge_battery(self):
-        initialise()
+        self.initialise()

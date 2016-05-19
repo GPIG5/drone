@@ -37,16 +37,18 @@ class Space:
         self.top_right = top_right
     def to_json(self):
         return {
-            "bottom_left": self.bottom_left.to_json,
-            "top_right": self.top_right.to_json
+            "bottom_left": self.bottom_left.to_json(),
+            "top_right": self.top_right.to_json()
         }
     @classmethod
     def from_json(cls, d, self=None):
         if self == None:
             self = cls.__new__(cls)
         self = Space(
-            bottom_left = d["bottom_left"],
-            top_right = d["top_right"]
+            # bottom_left = d["bottom_left"],
+            # top_right = d["top_right"]
+            bottom_left = Point.from_json(d["bottom_left"]),
+            top_right = Point.from_json(d["top_right"])
         )
         return self
 

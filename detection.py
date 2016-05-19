@@ -26,6 +26,7 @@ class Detection:
         while True:
             msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor')
 
+            timestamp = time.time()
             timestr = time.strftime('%Y%m%d%H%M%S')
 
             # Write image to file
@@ -44,7 +45,7 @@ class Detection:
             finally:
                 yield from f.close()
 
-            yield from self.communicator.send(PinorMesh(self.uuid, self.uuid, pinors).to_json())
+            yield from self.communicator.send(PinorMesh(self.uuid, self.uuid, msg.pinor).to_json())
 
-    def get_pinor():
+    def get_pinor(self):
         return self.pinor

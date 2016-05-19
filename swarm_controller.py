@@ -42,7 +42,7 @@ class SwarmController(Layer):
             elif self.coherence_complete():
                 # If coherence complete return to normal; otherwise continue with coherence
                 self.aggregation_timer = time.time()
-                self.perform_normal(current_output)
+                return self.perform_normal(current_output)
             else:
                 return self.perform_coherence()
 
@@ -50,7 +50,7 @@ class SwarmController(Layer):
             # If avoidance complete return to normal; otherwise continue with avoidance
             if self.avoidance_complete():
                 self.aggregation_timer = time.time()
-                self.perform_normal(current_output)
+                return self.perform_normal(current_output)
             else:
                 return self.perform_coherence()
 
@@ -58,7 +58,11 @@ class SwarmController(Layer):
     def avoidance_needed(self):
         current_position = self.telemetry.get_location()
         position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
-        return current_position.distance_to(position_of_closest) < self.avoidance_radius
+        
+        if position_of_closest is not None:
+            return current_position.distance_to(position_of_closest) < self.avoidance_radius
+        else:
+            return False
 
     # Returns an action that needs to be taken for avoidance
     def perform_avoidance(self):
@@ -70,10 +74,10 @@ class SwarmController(Layer):
             current_position = self.telemetry.get_location()
             position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
 
-            current_position = self.telemetry.get_location()
             avoidance_latitude = current_position.latitude + (position_of_closest.latitude - current_position.latitude)
             avoidance_longitude = current_position.longitude + (position_of_closest.longitude - current_position.longitude)
             avoidance_altitude = current_position.altitude + (position_of_closest.latitude - current_position.altitude)
+
             self.target = Point(avoidance_latitude, avoidance_longitude, avoidance_altitude)
 
         self.aggregation_timer = time.time()
