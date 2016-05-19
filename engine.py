@@ -36,10 +36,10 @@ class Engine:
                 travel_destination = great_circle(meters=travel_distance).destination(current_location, bearing)
                 travel_destination.altitude = target_location.altitude
 
-                print(current_location)
-                print(bearing)
-                print(travel_destination)
-                print(target_location)
+                # print(current_location)
+                # print(bearing)
+                # print(travel_destination)
+                # print(target_location)
 
                 yield from self.telemetry.set_location(Point(travel_destination))
 

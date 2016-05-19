@@ -68,6 +68,9 @@ class SwarmController(Layer):
     def perform_avoidance(self):
 
         if self.state != State.avoidance:
+
+            print("AVOIDANCE INITIATED")
+
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
 

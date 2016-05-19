@@ -60,6 +60,6 @@ class Messagedispatcher:
             emsg = c.from_json(msg)
             yield from q.put(emsg)
             if meshput:
-                print("RECEIVE:  " + str(msg) + "\n")
+                # print("RECEIVE:  " + str(msg) + "\n")
                 yield from self.mesh_queue.put(emsg)
 
