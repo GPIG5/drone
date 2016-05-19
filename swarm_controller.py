@@ -64,7 +64,7 @@ class SwarmController(Layer):
         position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
 
         if position_of_closest is not None:
-            print("Distance to closest: " + current_position.distance_to(position_of_closest))
+            print("Distance to closest: " + str(current_position.distance_to(position_of_closest)))
             return current_position.distance_to(position_of_closest) < self.avoidance_radius
         else:
             return False
