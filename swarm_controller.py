@@ -42,7 +42,7 @@ class SwarmController(Layer):
             elif self.coherence_complete():
                 # If coherence complete return to normal; otherwise continue with coherence
                 self.aggregation_timer = time.time()
-                self.perform_normal(current_output)
+                return self.perform_normal(current_output)
             else:
                 return self.perform_coherence()
 
@@ -50,7 +50,7 @@ class SwarmController(Layer):
             # If avoidance complete return to normal; otherwise continue with avoidance
             if self.avoidance_complete():
                 self.aggregation_timer = time.time()
-                self.perform_normal(current_output)
+                return self.perform_normal(current_output)
             else:
                 return self.perform_coherence()
 

@@ -40,11 +40,13 @@ class Detection:
             try:
                 for pinor in msg.pinor:
                     point = pinor.to_json()
-                    yield from f.write(timestamp + ',' + point['lon'] + ',' + point['lat'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
+                    # TODO is timestr the correct parameter to use? timestamp is undefined
+                    # yield from f.write(timestamp + ',' + point['lon'] + ',' + point['lat'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
+                    yield from f.write(timestr + ',' + point['lon'] + ',' + point['lat'] + ',' + point['alt'] + ',' + timestr + '.jpg' + '\n')
             finally:
                 yield from f.close()
 
-            yield from self.communicator.send(PinorMesh(self.uuid, self.uuid, pinors).to_json())
+            yield from self.communicator.send(PinorMesh(self.uuid, self.uuid, msg.pinors).to_json())
 
-    def get_pinor():
+    def get_pinor(self):
         return self.pinor
