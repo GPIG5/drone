@@ -1,6 +1,7 @@
 import aiofiles
 import asyncio
 import base64
+import os
 import time
 
 from messages import PinorMesh
@@ -8,13 +9,17 @@ from messages import PinorMesh
 class Detection:
     def __init__(self, config, communicator, messagedispatcher):
         self.uuid = config.get('uuid')
-        self.data_folder = config.get('data_folder')
+        self.data_folder = config.get('data_folder') + config.get('uuid') + '/'
         self.pinor_file = self.data_folder + 'pinor.csv'
+        self.image_folder = self.data_folder + 'images/'
         self.communicator = communicator
         self.messagedispatcher = messagedispatcher
 
     @asyncio.coroutine
     def initialise(self):
+        if not os.path.isdir(self.image_folder):
+           os.makedirs(self.image_folder)
+
         f = yield from aiofiles.open(self.pinor_file, mode='w')
         try:
             yield from f.write('timestamp,lon,lat,alt,img\n')
@@ -30,7 +35,7 @@ class Detection:
             timestr = time.strftime('%Y%m%d%H%M%S')
 
             # Write image to file
-            f = yield from aiofiles.open(self.data_folder + 'images/' + timestr + '.jpg', mode='wb')
+            f = yield from aiofiles.open(self.image_folder + timestr + '.jpg', mode='wb')
             try:
                 yield from f.write(base64.decodestring(msg.img.encode()))
             finally:
