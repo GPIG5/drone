@@ -2,9 +2,9 @@ import asyncio
 import bisect
 
 class MeshController:
-    def __init__(self, message_dispatcher, drone, communicator, max_messages = 3):
+    def __init__(self, config, message_dispatcher, communicator, max_messages = 3):
         self.message_dispatcher = message_dispatcher
-        self.drone = drone
+        self.uuid = config.get('uuid')
         self.origin_map = {}
         self.communicator = communicator
         self.max_messages = max_messages
@@ -12,10 +12,12 @@ class MeshController:
     def startup(self):
         while True:
             msg = yield from self.message_dispatcher.get_mesh_message()
+            if msg.uuid == self.uuid or msg.origin == self.uuid:
+                continue
             ts = msg.timestamp
             origin = msg.origin
             if self.add_message(ts, origin):
-                msg.uuid = self.drone.getUUID()
+                msg.uuid = self.uuid
                 self.communicator.send_message(msg)
     def add_message(self, ts, origin):
         if origin in self.origin_map:

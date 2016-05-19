@@ -39,5 +39,4 @@ class Communicator:
         encoded_size = struct.unpack("!L", unencoded_size)[0]
         unencoded_data = yield from self.reader.readexactly(encoded_size)
         encoded_data = json.loads(unencoded_data.decode('utf-8'))
-        print("RECEIVE:  " + str(encoded_data) + "\n")
         return encoded_data
