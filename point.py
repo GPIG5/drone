@@ -45,8 +45,6 @@ class Space:
         if self == None:
             self = cls.__new__(cls)
         self = Space(
-            # bottom_left = d["bottom_left"],
-            # top_right = d["top_right"]
             bottom_left = Point.from_json(d["bottom_left"]),
             top_right = Point.from_json(d["top_right"])
         )

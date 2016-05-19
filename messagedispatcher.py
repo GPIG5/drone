@@ -51,16 +51,12 @@ class Messagedispatcher:
             meshput = False
             msg = yield from self.communicator.receive()
             if msg["type"] == "mesh":
-                # yield from self.mesh_queue.put(msg)
                 meshput = True
-
             x = self.messages
             x = x[msg["type"]]
             x = x[msg["data"]["datatype"]]
             q = x["queue"]
             c = x["class"]
-
-            # yield from q.put(c.from_json(msg))
             emsg = c.from_json(msg)
             yield from q.put(emsg)
             if meshput:
