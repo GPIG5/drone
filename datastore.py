@@ -57,7 +57,7 @@ class Datastore:
             st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
             d = Drone(st.origin, st.battery, st.location)
             self.drone_state[d.uuid] = d
-            print("got message from" + d.uuid)
+            # print("got message from" + d.uuid)
 
 
 class SectorState(Enum):
