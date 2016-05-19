@@ -11,12 +11,11 @@ class Drone:
         self.location = location
 
 
-
 class Datastore:
-    def __init__(self, messagedispatcher, detection_radius):
+    def __init__(self, config, messagedispatcher):
         self.messagedispatcher = messagedispatcher
         self.drone_state = {}
-        self.detection_radius = float(detection_radius)
+        self.detection_radius = config.getfloat('detection_radius')
         self.grid_state = None
 
     def get_drone_state(self, uuid):
@@ -64,23 +63,6 @@ class SectorState(Enum):
     notSearched = 2
     shouldNotSearch = 3
     being_searched = 4
-
-
-# class SectorIndex:
-#     def __init__(self, x, y):
-#         self.x = x
-#         self.y = y
-#
-#     def __eq__(self, other):
-#         if isinstance(other, self.__class__):
-#             return self.x == other.x and self.y == other.y
-#         return False
-#
-#     def __ne__(self, other):
-#         return not self.__eq__(other)
-#
-#     def __hash__(self):
-#         return self.x * self.y
 
 
 class GridState:
@@ -148,31 +130,3 @@ class GridState:
     def get_distance_to(self, sector_index, position):
         corners = self.get_sector_corners(sector_index)
         return min([position.distance_to(corners[i]) for i in range(4)])
-
-# class Neighbours:
-#     def __init__(self, number_of_neighbours):
-#         self.neighbours = [None for i in range(number_of_neighbours)]
-#
-#     def update_neighbour(self, index, position):
-#         if self.neighbours[index] is not None:
-#             self.neighbours[index].update_position(position)
-#         else:
-#             self.neighbours[index] = NeighbourState(position)
-#
-#     # Finds the closest neighbour to the defined position
-#     def closest_to(self, position):
-#         # Find distances; fill -1 if no neighbour state defined for the given neighbour
-#         distances = [position.distance_to(self.neighbours[i].position) if self.neighbours[i] is not None else -1
-#                      for i in range(len(self.neighbours))]
-#         # Eliminate the -1s arising from undefined neighbour states
-#         valid_distances = [distances[i] if distances[i] != -1 else max(distances) for i in range(len(self.neighbours))]
-#         return distances.index(min(valid_distances))
-#
-#
-# # Neighbour positions
-# class NeighbourState:
-#     def __init__(self, position):
-#         self.position = position
-#
-#     def update_position(self, position):
-#         self.position = position
