@@ -21,13 +21,6 @@ class Engine:
 
             if (target_distance != 0):
                 # algorithm from http://williams.best.vwh.net/avform.htm#Crs
-
-                print(current_location)
-                print(target_location)
-                print(current_location.latitude)
-                print(target_location.latitude)
-                print(target_distance)
-
                 if (sin(target_location.longitude - current_location.longitude) < 0):
                     bearing = acos((
                         sin(target_location.latitude) - sin(current_location.latitude) * cos(target_distance)) /
