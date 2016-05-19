@@ -98,7 +98,7 @@ class SwarmController(Layer):
             self.state = State.coherence
 
             current_position = self.telemetry.get_location()
-            neighbours_in_range = self.data_store.drones_in_range(current_position, self.radio_radius)
+            neighbours_in_range = self.data_store.drones_in_range_of(current_position, self.radio_radius)
 
             if len(neighbours_in_range) != 0:
                 # We find the center of mass by averaging. Mass of all points is considered 1
