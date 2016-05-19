@@ -70,6 +70,7 @@ class GridState:
         bottom_left = space.bottom_left
         top_right = space.top_right
         self.origin = bottom_left
+        self.origin.altitude = 100
 
         map_height = top_right.latitude - bottom_left.latitude
         map_width = top_right.longitude - bottom_left.longitude
