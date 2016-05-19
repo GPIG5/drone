@@ -14,7 +14,7 @@ avoidance_radius = 25
 aggregation_timeout = 10
 target_radius = 1
 detection_radius = 10
-radio_radius = 50
+radio_radius = 2000
 
 [engine]
 speed = 2

@@ -25,6 +25,9 @@ class SwarmController(Layer):
         self.radio_radius = config.getint('radio_radius')
 
     def execute_layer(self, current_output):
+
+        # print ("SWARM STATE: " + str(self.state))
+
         if self.state == State.normal:
             # 1. Check if avoidance needed
             if self.avoidance_needed():
@@ -49,10 +52,11 @@ class SwarmController(Layer):
         elif self.state == State.avoidance:
             # If avoidance complete return to normal; otherwise continue with avoidance
             if self.avoidance_complete():
+                print("AVOIDANCE COMPLETE")
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
-                return self.perform_coherence()
+                return self.perform_avoidance()
 
     # Checks whether an avoidance move is necessary in the current state
     def avoidance_needed(self):
@@ -60,6 +64,7 @@ class SwarmController(Layer):
         position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
 
         if position_of_closest is not None:
+            # print("Distance to closest: " + str(current_position.distance_to(position_of_closest)))
             return current_position.distance_to(position_of_closest) < self.avoidance_radius
         else:
             return False
@@ -68,20 +73,27 @@ class SwarmController(Layer):
     def perform_avoidance(self):
 
         if self.state != State.avoidance:
+
+            print("AVOIDANCE INITIATED")
+
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
 
             current_position = self.telemetry.get_location()
             position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
 
-            avoidance_latitude = current_position.latitude + (position_of_closest.latitude - current_position.latitude)
-            avoidance_longitude = current_position.longitude + (position_of_closest.longitude - current_position.longitude)
-            avoidance_altitude = current_position.altitude + (position_of_closest.latitude - current_position.altitude)
+            avoidance_latitude = current_position.latitude - (position_of_closest.latitude - current_position.latitude)
+            avoidance_longitude = current_position.longitude - (position_of_closest.longitude - current_position.longitude)
+            avoidance_altitude = current_position.altitude
 
             self.target = Point(
                 latitude = avoidance_latitude,
                 longitude = avoidance_longitude,
                 altitude = avoidance_altitude)
+
+            print("AVOIDANCE TARGET: " + str(self.target))
+            print("CURRENT POSITION: " + str(current_position))
+            print("DISTANCE: " + str(self.target.distance_to(current_position)))
 
         self.aggregation_timer = time.time()
         return Action(self.target)
@@ -118,6 +130,10 @@ class SwarmController(Layer):
                     altitude = total_altitude / totalmass)
             else:
                 self.target = current_position
+
+            print("COHERENCE INITIATED TOWARDS: " + str(self.target))
+            print("CURRENT POSITION: " + str(current_position))
+            print("DISTANCE: " + str(self.target.distance_to(current_position)))
 
         return Action(self.target)
 
