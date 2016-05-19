@@ -30,18 +30,18 @@ class Datastore:
 
     def get_position_of_drone_closest_to(self, position):
         closest = None
-        for i in range(len(self.drone_state)):
-            distance = position.distance_to(self.drone_state[i].location)
-            if closest is None | closest > distance:
-                closest = self.drone_state[i].location
+        for uuid, drone in self.drone_state.items():
+            distance = position.distance_to(drone.location)
+            if closest is None or closest > distance:
+                closest = drone.location
         return closest
 
-    def drones_in_range_of(self, position, range):
+    def drones_in_range_of(self, position, drone_range):
         locations_in_range = []
-        for i in range(len(self.drone_state)):
-            distance = position.distance_to(self.drone_state[i].location)
-            if distance < range:
-                locations_in_range.append(self.drone_state[i].location)
+        for uuid, drone in self.drone_state.items():
+            distance = position.distance_to(drone.location)
+            if distance < drone_range:
+                locations_in_range.append(drone.location)
         return locations_in_range
 
     def get_grid_state(self):
