@@ -82,8 +82,8 @@ class SwarmController(Layer):
             current_position = self.telemetry.get_location()
             position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position)
 
-            avoidance_latitude = current_position.latitude + (position_of_closest.latitude - current_position.latitude)
-            avoidance_longitude = current_position.longitude + (position_of_closest.longitude - current_position.longitude)
+            avoidance_latitude = current_position.latitude - (position_of_closest.latitude - current_position.latitude)
+            avoidance_longitude = current_position.longitude - (position_of_closest.longitude - current_position.longitude)
             avoidance_altitude = current_position.altitude
 
             self.target = Point(
