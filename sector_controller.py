@@ -1,4 +1,5 @@
 from enum import Enum
+from geopy.distance import great_circle
 
 from datastore import SectorState
 from layer import *
@@ -81,12 +82,9 @@ class SectorController(Layer):
             # Start at top-left and scan through until the bottom right is within range
             current_position = self.telemetry.get_location()
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
-            detection_radius = self.detection_radius
-            target_long = top_left.longitude - detection_radius
-            self.move_target = Point(
-                latitude = top_left.latitude,
-                longitude = target_long,
-                altitude = current_position.altitude)
+
+            travel_destination = great_circle(meters=self.detection_radius).destination(top_left, 180)
+            self.move_target = Point(travel_destination)
             self.searching_state = SearchState.initial
 
         # If you are close enough to target calculate next target/do not move if complete
@@ -99,42 +97,34 @@ class SectorController(Layer):
 
             if self.searching_state == SearchState.initial:
                 self.searching_state = SearchState.moving_right
-                self.move_target = Point(
-                    latitude = bottom_right.latitude,
-                    longitude = old_target.longitude,
-                    altitude = old_target.altitude)
-                pass
-            elif self.searching_state == SearchState.moving_right and self.searching_state == SearchState.moving_left:
+                travel_destination = great_circle(meters=self.grid_state.sector_width).destination(old_target, 90)
+                self.move_target = Point(travel_destination)
+
+            elif self.searching_state == SearchState.moving_right or self.searching_state == SearchState.moving_left:
+                self.old_search_state = self.searching_state
                 self.searching_state = SearchState.moving_down
-                self.move_target = Point(
-                    longitude=old_target.longitude - 2 * self.detection_radius,
-                    latitude=old_target.latitude,
-                    altitude=old_target.altitude
-                )
+                travel_destination = great_circle(meters=self.detection_radius*2).destination(old_target, 180)
+                self.move_target = Point(travel_destination)
+
             elif self.searching_state == SearchState.moving_down:
-                if old_target.latitude == bottom_left.latitude:
+                if self.old_search_state == SearchState.moving_left:
                     self.searching_state = SearchState.moving_right
-                    self.move_target = Point(
-                        longitude=old_target.longitude,
-                        latitude=bottom_right.latitude,
-                        altitude=old_target.altitude
-                    )
+                    travel_destination = great_circle(meters=self.grid_state.sector_width).destination(old_target, 90)
+                    self.move_target = Point(travel_destination)
                 else:
                     self.searching_state = SearchState.moving_left
-                    self.move_target = Point(
-                        longitude=old_target.longitude,
-                        latitude=bottom_left.latitude,
-                        altitude=old_target.altitude
-                    )
+                    travel_destination = great_circle(meters=self.grid_state.sector_width).destination(old_target, 270)
+                    self.move_target = Point(travel_destination)
+
         return Action(self.move_target)
 
     def calculate_target(self):
         current_position = self.telemetry.get_location()
         self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
         self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
-        print('Move Target: ' + str(self.move_target))
 
     def move_to_target(self):
+        print('Moving to Target: ' + str(self.move_target))
         return Action(self.move_target)
 
     def search_complete(self):
