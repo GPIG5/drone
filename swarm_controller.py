@@ -92,6 +92,8 @@ class SwarmController(Layer):
                 altitude = avoidance_altitude)
 
             print("AVOIDANCE TARGET: " + str(self.target))
+            print("CURRENT POSITION: " + str(current_position))
+            print("DISTANCE: " + str(self.target.distance_to(current_position)))
 
         self.aggregation_timer = time.time()
         return Action(self.target)
