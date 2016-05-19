@@ -29,10 +29,12 @@ class Datastore:
 
     def get_position_of_drone_closest_to(self, position):
         closest = None
+        closest_distance = None
         for uuid, drone in self.drone_state.items():
             distance = position.distance_to(drone.location)
-            if closest is None or closest > distance:
+            if closest is None or closest_distance > distance:
                 closest = drone.location
+                closest_distance = distance
         return closest
 
     def drones_in_range_of(self, position, drone_range):
