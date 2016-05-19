@@ -100,21 +100,24 @@ class SwarmController(Layer):
             current_position = self.telemetry.get_location()
             neighbours_in_range = self.data_store.drones_in_range(current_position, self.radio_radius)
 
-            # We find the center of mass by averaging. Mass of all points is considered 1
-            totalmass = 0
-            total_latitude = 0
-            total_longitude = 0
-            total_altitude = 0
-            for i in range(len(neighbours_in_range)):
-                totalmass += 1
-                total_latitude += neighbours_in_range[i].latitude
-                total_longitude += neighbours_in_range[i].longitude
-                total_altitude += neighbours_in_range[i].altitude
+            if len(neighbours_in_range) != 0:
+                # We find the center of mass by averaging. Mass of all points is considered 1
+                totalmass = 0
+                total_latitude = 0
+                total_longitude = 0
+                total_altitude = 0
+                for i in range(len(neighbours_in_range)):
+                    totalmass += 1
+                    total_latitude += neighbours_in_range[i].latitude
+                    total_longitude += neighbours_in_range[i].longitude
+                    total_altitude += neighbours_in_range[i].altitude
 
-            self.target = Point(
-                latitude = total_latitude / totalmass,
-                longitude = total_longitude / totalmass,
-                altitude = total_altitude / totalmass)
+                self.target = Point(
+                    latitude = total_latitude / totalmass,
+                    longitude = total_longitude / totalmass,
+                    altitude = total_altitude / totalmass)
+            else:
+                self.target = current_position
 
         return Action(self.target)
 
