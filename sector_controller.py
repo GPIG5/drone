@@ -83,7 +83,10 @@ class SectorController(Layer):
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
             detection_radius = self.detection_radius
             target_long = top_left.longitude - detection_radius
-            self.move_target = Point(target_long, top_left.latitude, current_position.altitude)
+            self.move_target = Point(
+                latitude = top_left.latitude,
+                longitude = target_long,
+                altitude = current_position.altitude)
             self.searching_state = SearchState.initial
 
         # If you are close enough to target calculate next target/do not move if complete
@@ -96,7 +99,10 @@ class SectorController(Layer):
 
             if self.searching_state == SearchState.initial:
                 self.searching_state = SearchState.moving_right
-                self.move_target = Point(old_target.longitude, bottom_right.latitude, old_target.altitude)
+                self.move_target = Point(
+                    latitude = bottom_right.latitude,
+                    longitude = old_target.longitude,
+                    altitude = old_target.altitude)
                 pass
             elif self.searching_state == SearchState.moving_right and self.searching_state == SearchState.moving_left:
                 self.searching_state = SearchState.moving_down

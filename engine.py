@@ -16,11 +16,18 @@ class Engine:
             current_location = self.telemetry.get_location()
             target_location = self.navigator.get_current_target()
 
-            target_distance = great_circle(current_location, target_location).meters
+            target_distance = great_circle(current_location, target_location).kilometers
             travel_distance = self.speed / self.travel_time
 
             if (target_distance != 0):
                 # algorithm from http://williams.best.vwh.net/avform.htm#Crs
+
+                print(current_location)
+                print(target_location)
+                print(current_location.latitude)
+                print(target_location.latitude)
+                print(target_distance)
+
                 if (sin(target_location.longitude - current_location.longitude) < 0):
                     bearing = acos((
                         sin(target_location.latitude) - sin(current_location.latitude) * cos(target_distance)) /

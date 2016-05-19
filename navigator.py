@@ -11,8 +11,8 @@ class Navigator:
         self.messagedispatcher = messagedispatcher
         self.reactor = Reactor(config, data_store, telemetry, messagedispatcher)
         self.current_target = Point(
-            longitude = telemetry.get_location().longitude,
             latitude = telemetry.get_location().latitude,
+            longitude = telemetry.get_location().longitude,
             altitude = telemetry.get_location().altitude
         )
         self.c2_reactor = self.reactor.c2_reactor
