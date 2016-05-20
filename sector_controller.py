@@ -1,5 +1,4 @@
 from enum import Enum
-from geopy.distance import great_circle
 
 from datastore import SectorState
 from layer import *
@@ -48,6 +47,7 @@ class SectorController(Layer):
 
         if self.state == State.moving:
             if self.within_target():
+                print('within_target')
                 if self.target_unclaimed():
                     # We claim the sector and start searching it
                     action = self.perform_search()
@@ -59,6 +59,7 @@ class SectorController(Layer):
             return self.move_to_target()
 
         elif self.state == State.searching:
+            print('searching')
             if self.search_complete():
                 self.state = State.moving
                 self.calculate_target()
@@ -77,14 +78,14 @@ class SectorController(Layer):
                                                       self.telemetry.get_location())
 
     def perform_search(self):
-
+        print('perform_search')
         if self.state != State.searching:
             # Start at top-left and scan through until the bottom right is within range
             current_position = self.telemetry.get_location()
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
-
-            travel_destination = great_circle(meters=self.detection_radius).destination(top_left, 180)
-            self.move_target = Point(travel_destination)
+            print('Current: ' + str(current_position) + ' Top Left: ' + str(top_left))
+            self.move_target = top_left.point_at_vector(self.detection_radius, 180)
+            print('Move Target: ' + str(self.move_target))
             self.searching_state = SearchState.initial
 
         # If you are close enough to target calculate next target/do not move if complete
@@ -97,24 +98,20 @@ class SectorController(Layer):
 
             if self.searching_state == SearchState.initial:
                 self.searching_state = SearchState.moving_right
-                travel_destination = great_circle(meters=self.grid_state.sector_width).destination(old_target, 90)
-                self.move_target = Point(travel_destination)
+                self.move_target = old_target.point_at_vector(self.grid_state.sector_width, 90)
 
             elif self.searching_state == SearchState.moving_right or self.searching_state == SearchState.moving_left:
                 self.old_search_state = self.searching_state
                 self.searching_state = SearchState.moving_down
-                travel_destination = great_circle(meters=self.detection_radius*2).destination(old_target, 180)
-                self.move_target = Point(travel_destination)
+                self.move_target = old_target.point_at_vector(self.detection_radius*2, 180)
 
             elif self.searching_state == SearchState.moving_down:
                 if self.old_search_state == SearchState.moving_left:
                     self.searching_state = SearchState.moving_right
-                    travel_destination = great_circle(meters=self.grid_state.sector_width).destination(old_target, 90)
-                    self.move_target = Point(travel_destination)
+                    self.move_target = old_target.point_at_vector(self.grid_state.sector_width, 90)
                 else:
                     self.searching_state = SearchState.moving_left
-                    travel_destination = great_circle(meters=self.grid_state.sector_width).destination(old_target, 270)
-                    self.move_target = Point(travel_destination)
+                    self.move_target = old_target.point_at_vector(self.grid_state.sector_width, 270)
 
         return Action(self.move_target)
 

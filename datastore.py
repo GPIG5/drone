@@ -1,6 +1,5 @@
 import asyncio
 from enum import Enum
-from geopy.distance import great_circle
 import itertools
 import math
 
@@ -74,11 +73,17 @@ class GridState:
     def __init__(self, space, detection_radius):
         bottom_left = space.bottom_left
         top_right = space.top_right
-        self.origin = bottom_left
-        self.origin.altitude = 100
 
-        map_height = top_right.latitude - bottom_left.latitude
-        map_width = top_right.longitude - bottom_left.longitude
+        top_left = Point(bottom_left)
+        top_left.latitude = top_right.latitude
+        bottom_right = Point(bottom_left)
+        bottom_right.longitude = top_right.longitude
+
+        self.origin = Point(bottom_left)
+        self.origin.altitude = 75
+
+        map_height = bottom_left.distance_to(top_left)
+        map_width = bottom_left.distance_to(bottom_right)
 
         pre_sector_height = 5 * detection_radius
         pre_sector_width = 5 * detection_radius
@@ -96,7 +101,7 @@ class GridState:
     def position_within_sector(self, sector_index, position):
         bottom_left = self.get_sector_origin(sector_index)
         distance = math.hypot(self.sector_width, self.sector_height)
-        top_right = Point(great_circle(meters=distance).destination(bottom_left, 45), altitude=bottom_left.altitude)
+        top_right = bottom_left.point_at_vector(distance, 45)
 
         return position.latitude >= bottom_left.latitude and \
                position.latitude <= top_right.latitude and \
@@ -112,14 +117,16 @@ class GridState:
     # returns: bottom-left, bottom-right, top-left, top-right as a list
     def get_sector_corners(self, sector_index):
         bottom_left = self.get_sector_origin(sector_index)
-        bottom_right = Point(great_circle(meters=self.sector_width).destination(bottom_left, 90), altitude=bottom_left.altitude)
-        top_left = Point(great_circle(meters=self.sector_height).destination(bottom_left, 0), altitude=bottom_left.altitude)
-        top_right = Point(great_circle(meters=self.sector_height).destination(bottom_right, 0), altitude=bottom_right.altitude)
+        bottom_right = bottom_left.point_at_vector(self.sector_width, 90)
+        top_left = bottom_left.point_at_vector(self.sector_height, 0)
+        top_right = bottom_right.point_at_vector(self.sector_height, 0)
+        print('width: ' + str(self.sector_width) + ' height: ' + str(self.sector_height))
+        print('bl: ' + str(bottom_left) + ' br: ' + str(bottom_right) + ' tl: ' + str(top_left) + ' tr: ' + str(top_right))
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
         distance = math.hypot(sector_index[0] * self.sector_width, sector_index[1] * self.sector_height)
-        return Point(great_circle(meters=distance).destination(self.origin, 45), altitude=self.origin.altitude)
+        return self.origin.point_at_vector(distance, 45)
 
     def get_closest_unclaimed(self, position):
         min_distance = None

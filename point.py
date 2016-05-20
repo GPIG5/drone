@@ -1,5 +1,5 @@
 import geopy
-import geopy.distance
+from geopy.distance import great_circle
 
 class Point(geopy.point.Point):
 
@@ -22,7 +22,7 @@ class Point(geopy.point.Point):
         }
 
     def distance_to(self, p2):
-        return geopy.distance.great_circle(self, p2).meters
+        return great_circle(self, p2).meters
 
     def perp(self, p2):
         return Point(
@@ -30,6 +30,14 @@ class Point(geopy.point.Point):
             latitude = self.latitude + (p2.longitude - self.longitude),
             altitude = self.altitude
         )
+
+    def point_at_vector(self, distance, bearing):
+        if distance == 0:
+            return Point(self)
+        else:
+            point = Point(great_circle(meters=distance).destination(self, bearing))
+            point.altitude = self.altitude
+            return point
 
 class Space:
     def __init__(self, bottom_left, top_right):
