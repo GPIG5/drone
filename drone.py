@@ -5,6 +5,8 @@ import configparser
 from enum import Enum
 import uuid
 
+import sys
+
 from communicator import Communicator
 from datastore import Datastore
 from detection import Detection
@@ -76,7 +78,18 @@ class Drone:
 
 def main():
     config = configparser.ConfigParser()
-    config.read('config.ini')
+
+    config_file = None
+
+    arguments = sys.argv
+    if len(arguments) > 1:
+        config_file = arguments[1]
+    else:
+        config_file = 'config.ini'
+
+    print("Config with: " + config_file)
+
+    config.read(config_file)
 
     drone = Drone(config)
     drone.run()

@@ -48,6 +48,7 @@ class SectorController(Layer):
         if self.state == State.moving:
             if self.within_target():
                 if self.target_unclaimed():
+                    print("SECTOR: Claiming sector " + str(self.target_sector))
                     # We claim the sector and start searching it
                     action = self.perform_search()
                     action.claim_sector = self.target_sector
@@ -59,6 +60,7 @@ class SectorController(Layer):
 
         elif self.state == State.searching:
             if self.search_complete():
+                print("SECTOR: Search complete in " + str(self.target_sector))
                 self.state = State.moving
                 self.calculate_target()
                 return self.move_to_target()

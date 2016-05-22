@@ -91,9 +91,9 @@ class SwarmController(Layer):
                 longitude = avoidance_longitude,
                 altitude = avoidance_altitude)
 
-            print("AVOIDANCE TARGET: " + str(self.target))
-            print("CURRENT POSITION: " + str(current_position))
-            print("DISTANCE: " + str(self.target.distance_to(current_position)))
+            print("AVOIDANCE TARGET: " + str(self.target) +
+                  "CURRENT POSITION: " + str(current_position) +
+                  "DISTANCE: " + str(self.target.distance_to(current_position)))
 
         self.aggregation_timer = time.time()
         return Action(self.target)
@@ -131,9 +131,9 @@ class SwarmController(Layer):
             else:
                 self.target = current_position
 
-            print("COHERENCE INITIATED TOWARDS: " + str(self.target))
-            print("CURRENT POSITION: " + str(current_position))
-            print("DISTANCE: " + str(self.target.distance_to(current_position)))
+            print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
+                  "CURRENT POSITION: " + str(current_position) +
+                  "DISTANCE: " + str(self.target.distance_to(current_position)))
 
         return Action(self.target)
 
