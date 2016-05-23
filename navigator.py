@@ -7,9 +7,9 @@ from reactor import Reactor
 from point import Point
 
 class Navigator:
-    def __init__(self, config, data_store, telemetry, messagedispatcher):
+    def __init__(self, config, data_store, telemetry, messagedispatcher, communicator):
         self.messagedispatcher = messagedispatcher
-        self.reactor = Reactor(config, data_store, telemetry, messagedispatcher)
+        self.reactor = Reactor(config, data_store, telemetry, messagedispatcher, communicator)
         self.current_target = Point(
             latitude = telemetry.get_location().latitude,
             longitude = telemetry.get_location().longitude,

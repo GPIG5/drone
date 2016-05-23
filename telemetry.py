@@ -60,4 +60,4 @@ class Telemetry:
         return self.battery_size - elapsed_time
 
     def recharge_battery(self):
-        self.initialise()
+        self.start_time = asyncio.get_event_loop().time()

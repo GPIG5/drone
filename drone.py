@@ -27,7 +27,7 @@ class Drone:
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.config['swarm'], self.messagedispatcher)
         self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
-        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
+        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher, self.communicator)
         self.c2_reactor = self.navigator.c2_reactor
         self.mesh_controller = MeshController(self.config['DEFAULT'], self.messagedispatcher, self.communicator)
         self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
