@@ -84,27 +84,19 @@ def drone(*configs):
         )
     )
 
-def multi_main():
+def multi_main(config_file):
     config = configparser.ConfigParser()
-
-    config_file = None
-
-    arguments = sys.argv
-    if len(arguments) > 1:
-        config_file = arguments[1]
-    else:
-        config_file = 'config.ini'
-
-    print("Config with: " + config_file)
 
     config.read(config_file)
 
     num_drones = int(config["main"]["num_drones"])
+
     config = None
+
     configs = []
     for i in range(0, num_drones):
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read(config_file)
         loc = tuple(
             [int(x) for x in make_tuple(
                 config["telemetry"]["start_location"]
@@ -117,16 +109,26 @@ def multi_main():
     loop.run_until_complete(drone(*configs))
     loop.close()
 
-def main():
+def main(config_file):
     config = configparser.ConfigParser()
-    config.read('config.ini')
+    config.read(config_file)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(drone(config))
     loop.close()
 
 if __name__ == "__main__":
-    # execute only if run as a script
-    if len(sys.argv) > 1 and sys.argv[1] == "multi":
-        multi_main()
+    config_file = None
+
+    arguments = sys.argv
+    if len(arguments) > 1:
+        config_file = arguments[1]
     else:
-        main()
+        config_file = 'config.ini'
+
+    print("Config with: " + config_file)
+
+    # execute only if run as a script
+    if len(sys.argv) > 1 and "multi" in sys.argv:
+        multi_main(config_file)
+    else:
+        main(config_file)
