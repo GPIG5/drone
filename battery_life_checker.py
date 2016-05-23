@@ -12,7 +12,7 @@ class BatteryLifeChecker(Layer):
         self.config = config
         self.communicator = communicator
     def execute_layer(self, current_output):
-        op = Action()
+        op = current_output
         if self.telemetry.get_battery() < (self.telemetry.get_initial_battery() / 2) + 240:
             if self.telemetry.get_location().distance_to(
                 self.telemetry.get_initial_location()
@@ -28,5 +28,5 @@ class BatteryLifeChecker(Layer):
             else:
                 op.move = self.telemetry.get_initial_location()
         else:
-            op = Layer.execute_layer(self, current_output)
+            op = Layer.execute_layer(self, op)
         return op
