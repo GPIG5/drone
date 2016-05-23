@@ -4,6 +4,8 @@ import asyncio
 import configparser
 from enum import Enum
 import uuid
+import sys
+from ast import literal_eval as make_tuple
 
 from communicator import Communicator
 from datastore import Datastore
@@ -80,6 +82,27 @@ def drone(*configs):
         )
     )
 
+def multi_main():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    num_drones = int(config["main"]["num_drones"])
+    config = None
+    configs = []
+    for i in range(0, num_drones):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        loc = tuple(
+            [int(x) for x in make_tuple(
+                config["telemetry"]["start_location"]
+            )]
+        )
+        nloc = (loc[0] + i * 0.000001, loc[1] + i * 0.000001)
+        config["telemetry"]["start_location"] = str(nloc)
+        configs.append(config)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(drone(*configs))
+    loop.close()
+
 def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -89,4 +112,7 @@ def main():
 
 if __name__ == "__main__":
     # execute only if run as a script
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "multi":
+        multi_main()
+    else:
+        main()
