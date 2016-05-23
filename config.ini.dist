@@ -19,6 +19,7 @@ target_radius = 1
 detection_radius = 10
 radio_radius = 2000
 drone_timeout = 10
+cohesion_degree = 75
 
 [engine]
 speed = 40

@@ -24,6 +24,7 @@ class SwarmController(Layer):
         self.target_radius = config.getint('target_radius')
         self.radio_radius = config.getint('radio_radius')
         self.drone_timeout = config.getint('drone_timeout')
+        self.cohesion_degree = config.getint('cohesion_degree')/100
 
     def execute_layer(self, current_output):
 
@@ -110,7 +111,7 @@ class SwarmController(Layer):
 
     def perform_coherence(self, current_output):
         if self.state != State.coherence:
-            # If avoidance was just initiated, we need to calculate which way to avoid to
+            # If coherence was just initiated, we need to calculate which way to avoid to
             self.state = State.coherence
 
             current_position = self.telemetry.get_location()
@@ -129,10 +130,20 @@ class SwarmController(Layer):
                     total_longitude += neighbours_in_range[i].longitude
                     total_altitude += neighbours_in_range[i].altitude
 
-                self.target = Point(
+                center_of_mass = Point(
                     latitude=total_latitude / totalmass,
                     longitude=total_longitude / totalmass,
                     altitude=total_altitude / totalmass)
+
+                # We move only partially towards the center of mass
+                self.target = Point(
+                    latitude=current_position.latitude +
+                             (center_of_mass.latitude - current_position.latitude) * self.cohesion_degree,
+                    longitude=current_position.longitude +
+                             (center_of_mass.longitude - current_position.longitude) * self.cohesion_degree,
+                    altitude=current_position.altitude +
+                             (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
+
             else:
                 self.target = current_position
 

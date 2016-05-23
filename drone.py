@@ -2,12 +2,17 @@
 
 import asyncio
 import configparser
+import os
+import random
 from enum import Enum
 import uuid
 import sys
+from point import Point
 from ast import literal_eval as make_tuple
 
 import sys
+
+import io
 
 from communicator import Communicator
 from datastore import Datastore
@@ -17,6 +22,7 @@ from navigator import Navigator
 from telemetry import Telemetry
 from mesh_controller import MeshController
 from engine import Engine
+
 
 class Drone:
     def __init__(self, config):
@@ -37,7 +43,7 @@ class Drone:
     def getUUID(self):
         return str(self.uuid)
 
-    def getConfig(self, key = None):
+    def getConfig(self, key=None):
         if key is None:
             return self.config
         elif key in self.config:
@@ -76,13 +82,15 @@ class Drone:
             *[x.startup() for x in tasks]
         )
 
+
 @asyncio.coroutine
 def drone(*configs):
-    return(
+    return (
         yield from asyncio.gather(
             *[Drone(config).run() for config in configs]
         )
     )
+
 
 def multi_main(config_file):
     config = configparser.ConfigParser()
@@ -109,6 +117,7 @@ def multi_main(config_file):
     loop.run_until_complete(drone(*configs))
     loop.close()
 
+
 def main(config_file):
     config = configparser.ConfigParser()
     config.read(config_file)
@@ -116,19 +125,52 @@ def main(config_file):
     loop.run_until_complete(drone(config))
     loop.close()
 
+
+def multi_fork_main(config_file, num_of_drones):
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    start_location = Point(*make_tuple(config['telemetry']['start_location']))
+    config_names = []
+
+    if not os.path.exists("configs"):
+        os.makedirs("configs")
+
+    # For every drone we want to start, we output a slightly modified config
+    for i in range(num_of_drones):
+        # Name of the new config file
+        name = "config" + str(i) + ".ini"
+        config_names.append(name)
+
+        # Vary the start location a little randomly
+        loc = Point(start_location.latitude + (random.uniform(0, 2) - 1) * 0.01,
+                    start_location.longitude + (random.uniform(0, 2) - 1) * 0.01,
+                    start_location.altitude)
+        config['telemetry']['start_location'] = str((loc.latitude, loc.longitude, loc.altitude))
+
+        # Write the config to file
+        file = io.open("configs/" + name, 'w')
+        config.write(file)
+
+    # Then fork a new thread for each config we generated
+    for name in config_names:
+        os.system("START drone.py config configs/" + name)
+
+
 if __name__ == "__main__":
     config_file = None
 
     arguments = sys.argv
-    if len(arguments) > 1:
-        config_file = arguments[1]
+    if len(arguments) > 2 and "config" in arguments:
+        config_file = arguments[arguments.index("config") + 1]
+        print("Config with: " + config_file)
     else:
         config_file = 'config.ini'
 
-    print("Config with: " + config_file)
-
     # execute only if run as a script
-    if len(sys.argv) > 1 and "multi" in sys.argv:
-        multi_main(config_file)
+    if len(arguments) > 1 and "multi" in arguments:
+        if "fork" in arguments:
+            multi_fork_main(config_file, int(arguments[arguments.index("fork") + 1]))
+        else:
+            multi_main(config_file)
     else:
         main(config_file)
