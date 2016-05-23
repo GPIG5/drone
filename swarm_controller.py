@@ -31,23 +31,23 @@ class SwarmController(Layer):
         if self.state == State.normal:
             # 1. Check if avoidance needed
             if self.avoidance_needed():
-                return self.perform_avoidance()
+                return self.perform_avoidance(current_output)
             # 2. Check if coherence needed
             elif self.coherence_needed():
-                return self.perform_coherence()
+                return self.perform_coherence(current_output)
             # 3. Continue to searching layer
             else:
                 return self.perform_normal(current_output)
 
         elif self.state == State.coherence:
             if self.avoidance_needed():
-                return self.perform_avoidance()
+                return self.perform_avoidance(current_output)
             elif self.coherence_complete():
                 # If coherence complete return to normal; otherwise continue with coherence
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
-                return self.perform_coherence()
+                return self.perform_coherence(current_output)
 
         elif self.state == State.avoidance:
             # If avoidance complete return to normal; otherwise continue with avoidance
@@ -56,7 +56,7 @@ class SwarmController(Layer):
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
-                return self.perform_avoidance()
+                return self.perform_avoidance(current_output)
 
     # Checks whether an avoidance move is necessary in the current state
     def avoidance_needed(self):
@@ -70,7 +70,7 @@ class SwarmController(Layer):
             return False
 
     # Returns an action that needs to be taken for avoidance
-    def perform_avoidance(self):
+    def perform_avoidance(self, current_output):
 
         if self.state != State.avoidance:
 
@@ -96,7 +96,8 @@ class SwarmController(Layer):
                   "DISTANCE: " + str(self.target.distance_to(current_position)))
 
         self.aggregation_timer = time.time()
-        return Action(self.target)
+        current_output.move = self.target
+        return current_output
 
     def avoidance_complete(self):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
@@ -104,7 +105,7 @@ class SwarmController(Layer):
     def coherence_needed(self):
         return time.time() - self.aggregation_timer > self.aggregation_timeout
 
-    def perform_coherence(self):
+    def perform_coherence(self, current_output):
         if self.state != State.coherence:
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.coherence
@@ -135,7 +136,8 @@ class SwarmController(Layer):
                   "CURRENT POSITION: " + str(current_position) +
                   "DISTANCE: " + str(self.target.distance_to(current_position)))
 
-        return Action(self.target)
+        current_output.move = self.target
+        return current_output
 
     def coherence_complete(self):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius

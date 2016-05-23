@@ -50,22 +50,22 @@ class SectorController(Layer):
                 if self.target_unclaimed():
                     print("SECTOR: Claiming sector " + str(self.target_sector))
                     # We claim the sector and start searching it
-                    action = self.perform_search()
+                    action = self.perform_search(current_output)
                     action.claim_sector = self.target_sector
                     return action
                 else:
                     # Otherwise we calculate new target
                     self.calculate_target()
-            return self.move_to_target()
+            return self.move_to_target(current_output)
 
         elif self.state == State.searching:
             if self.search_complete():
                 print("SECTOR: Search complete in " + str(self.target_sector))
                 self.state = State.moving
                 self.calculate_target()
-                return self.move_to_target()
+                return self.move_to_target(current_output)
             else:
-                return self.perform_search()
+                return self.perform_search(current_output)
 
         else:
             raise UnspecifiedState(self.state)
@@ -77,7 +77,7 @@ class SectorController(Layer):
         return self.grid_state.position_within_sector(self.target_sector,
                                                       self.telemetry.get_location())
 
-    def perform_search(self):
+    def perform_search(self, current_output):
 
         if self.state != State.searching:
             # Start at top-left and scan through until the bottom right is within range
@@ -128,7 +128,8 @@ class SectorController(Layer):
                         latitude=bottom_left.latitude,
                         altitude=old_target.altitude
                     )
-        return Action(self.move_target)
+        current_output.move = self.move_target
+        return current_output
 
     def calculate_target(self):
         current_position = self.telemetry.get_location()
@@ -136,8 +137,9 @@ class SectorController(Layer):
         self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
         print('Move Target: ' + str(self.move_target))
 
-    def move_to_target(self):
-        return Action(self.move_target)
+    def move_to_target(self, current_output):
+        current_output.move = self.move_target
+        return current_output
 
     def search_complete(self):
 
