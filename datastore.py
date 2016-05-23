@@ -1,14 +1,18 @@
 import asyncio
 import itertools
 from enum import Enum
+
+import time
+
 from point import Point
 
 
 class Drone:
-    def __init__(self, uuid, battery, location):
+    def __init__(self, uuid, battery, location, last_seen):
         self.uuid = uuid
         self.battery = battery
         self.location = location
+        self.last_seen = last_seen
 
 
 class Datastore:
@@ -27,21 +31,23 @@ class Datastore:
     def all_drones(self):
         return self.drone_state
 
-    def get_position_of_drone_closest_to(self, position):
+    def get_position_of_drone_closest_to(self, position, timeout=0):
         closest = None
         closest_distance = None
         for uuid, drone in self.drone_state.items():
             distance = position.distance_to(drone.location)
-            if closest is None or closest_distance > distance:
+            # Only consult drones that haven't timed out if timeout != 0
+            if (closest is None or closest_distance > distance) \
+                    and (timeout == 0 or time.time() - drone.last_seen < timeout):
                 closest = drone.location
                 closest_distance = distance
         return closest
 
-    def drones_in_range_of(self, position, drone_range):
+    def drones_in_range_of(self, position, drone_range, timeout=0):
         locations_in_range = []
         for uuid, drone in self.drone_state.items():
             distance = position.distance_to(drone.location)
-            if distance < drone_range:
+            if distance < drone_range and (timeout == 0 or time.time() - drone.last_seen < timeout):
                 locations_in_range.append(drone.location)
         return locations_in_range
 
@@ -55,7 +61,7 @@ class Datastore:
     def startup(self):
         while True:
             st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
-            d = Drone(st.origin, st.battery, st.location)
+            d = Drone(st.origin, st.battery, st.location, st.timestamp)
             self.drone_state[d.uuid] = d
             # print("got message from" + d.uuid)
 
@@ -93,9 +99,9 @@ class GridState:
     def position_within_sector(self, sector_index, position):
         bottom_left = self.get_sector_origin(sector_index)
         top_right = Point(
-            latitude = bottom_left.latitude + self.sector_width,
-            longitude = bottom_left.longitude + self.sector_height,
-            altitude = self.origin.altitude)
+            latitude=bottom_left.latitude + self.sector_width,
+            longitude=bottom_left.longitude + self.sector_height,
+            altitude=self.origin.altitude)
 
         return position.latitude > bottom_left.latitude and \
                position.latitude < top_right.latitude and \
@@ -112,26 +118,26 @@ class GridState:
     def get_sector_corners(self, sector_index):
         bottom_left = self.get_sector_origin(sector_index)
         bottom_right = Point(
-            latitude = bottom_left.latitude + self.sector_width,
-            longitude = bottom_left.longitude,
-            altitude = bottom_left.altitude)
+            latitude=bottom_left.latitude + self.sector_width,
+            longitude=bottom_left.longitude,
+            altitude=bottom_left.altitude)
         top_left = Point(
-            latitude = bottom_left.latitude,
-            longitude = bottom_left.longitude + self.sector_height,
-            altitude = bottom_left.altitude)
+            latitude=bottom_left.latitude,
+            longitude=bottom_left.longitude + self.sector_height,
+            altitude=bottom_left.altitude)
         top_right = Point(
-            latitude = bottom_left.latitude + self.sector_width,
-            longitude = bottom_left.longitude + self.sector_height,
-            altitude = bottom_left.altitude)
+            latitude=bottom_left.latitude + self.sector_width,
+            longitude=bottom_left.longitude + self.sector_height,
+            altitude=bottom_left.altitude)
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
         latitude = self.origin.latitude + sector_index[0] * self.sector_width
         longitude = self.origin.longitude + sector_index[1] * self.sector_height
         return Point(
-            latitude = latitude,
-            longitude = longitude,
-            altitude = self.origin.altitude)
+            latitude=latitude,
+            longitude=longitude,
+            altitude=self.origin.altitude)
 
     def get_closest_unclaimed(self, position):
         min_distance = None
