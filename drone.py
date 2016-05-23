@@ -92,11 +92,11 @@ def multi_main():
         config = configparser.ConfigParser()
         config.read('config.ini')
         loc = tuple(
-            [int(x) for x in make_tuple(
+            [float(x) for x in make_tuple(
                 config["telemetry"]["start_location"]
             )]
         )
-        nloc = (loc[0] + i * 0.000001, loc[1] + i * 0.000001)
+        nloc = (loc[0] + i * 0.001, loc[1] + i * 0.001, loc[2])
         config["telemetry"]["start_location"] = str(nloc)
         configs.append(config)
     loop = asyncio.get_event_loop()
