@@ -45,17 +45,17 @@ class Drone:
     def startup(self):
         return
 
+    @asyncio.coroutine
     def run(self):
-        loop = asyncio.get_event_loop()
         inittasks = [
             self.communicator,
             self.telemetry,
             self.detection
         ]
         print("starting init tasks")
-        loop.run_until_complete(asyncio.gather(
+        yield from asyncio.gather(
             *[x.initialise() for x in inittasks]
-        ))
+        )
         tasks = [
             self,
             self.datastore,
@@ -68,18 +68,24 @@ class Drone:
             self.c2_reactor
         ]
         print("starting main tasks")
-        loop.run_until_complete(asyncio.gather(
+        yield from asyncio.gather(
             *[x.startup() for x in tasks]
-        ))
-        loop.close()
+        )
 
+@asyncio.coroutine
+def drone(*configs):
+    return(
+        yield from asyncio.gather(
+            *[Drone(config).run() for config in configs]
+        )
+    )
 
 def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
-
-    drone = Drone(config)
-    drone.run()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(drone(config))
+    loop.close()
 
 if __name__ == "__main__":
     # execute only if run as a script
