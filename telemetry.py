@@ -31,6 +31,9 @@ class Telemetry:
             yield from self.communicator.send(env_status.to_json())
             yield from self.communicator.send(mesh_status.to_json())
 
+            if (self.get_battery() <= 0):
+                raise "OUT OF BATTERY"
+
             yield from asyncio.sleep(1)
 
     def get_location(self):
@@ -41,7 +44,8 @@ class Telemetry:
         with (yield from self.location_lock):
             if new_location is None:
                 raise "lol"
-            self.location = new_location
+            if (self.get_battery() > 0):
+                self.location = new_location
 
     def get_initial_battery(self):
         return self.battery_size
@@ -56,4 +60,4 @@ class Telemetry:
         return self.battery_size - elapsed_time
 
     def recharge_battery(self):
-        self.initialise()
+        self.start_time = asyncio.get_event_loop().time()

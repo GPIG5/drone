@@ -35,7 +35,7 @@ class Drone:
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.config['swarm'], self.messagedispatcher)
         self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
-        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
+        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher, self.communicator)
         self.c2_reactor = self.navigator.c2_reactor
         self.mesh_controller = MeshController(self.config['DEFAULT'], self.messagedispatcher, self.communicator)
         self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
@@ -106,11 +106,11 @@ def multi_main(config_file):
         config = configparser.ConfigParser()
         config.read(config_file)
         loc = tuple(
-            [int(x) for x in make_tuple(
+            [float(x) for x in make_tuple(
                 config["telemetry"]["start_location"]
             )]
         )
-        nloc = (loc[0] + i * 0.000001, loc[1] + i * 0.000001)
+        nloc = (loc[0] + i * 0.001, loc[1] + i * 0.001, loc[2])
         config["telemetry"]["start_location"] = str(nloc)
         configs.append(config)
     loop = asyncio.get_event_loop()
