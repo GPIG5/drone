@@ -123,7 +123,7 @@ class GridState:
         bottom_right = bottom_left.point_at_vector(self.sector_width, 90)
         top_left = bottom_left.point_at_vector(self.sector_height, 0)
         top_right = bottom_right.point_at_vector(self.sector_height, 0)
-        print(' bl: ' + str(bottom_left) + '\n br: ' + str(bottom_right) + '\n tl: ' + str(top_left) + '\n tr: ' + str(top_right))
+        # print(' bl: ' + str(bottom_left) + '\n br: ' + str(bottom_right) + '\n tl: ' + str(top_left) + '\n tr: ' + str(top_right))
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):

@@ -21,7 +21,7 @@ class Engine:
             travel_distance = target_distance if target_distance < travel_distance else travel_distance
 
             if (target_distance != 0):
-                # algorithm from http://williams.best.vwh.net/avform.htm#Crs
+                # algorithm from https://gist.github.com/jeromer/2005586
 
                 lat1 = math.radians(current_location.latitude)
                 lat2 = math.radians(target_location.latitude)
@@ -37,8 +37,8 @@ class Engine:
                 travel_destination = great_circle(meters=travel_distance).destination(current_location, bearing)
                 travel_destination.altitude = target_location.altitude
 
-                print('Location: ' + str(current_location) + ' Bearing: ' + str(bearing))
-                print('Destination: ' + str(travel_destination) + ' Target: ' + str(target_location))
+                # print('Location: ' + str(current_location) + ' Bearing: ' + str(bearing))
+                # print('Destination: ' + str(travel_destination) + ' Target: ' + str(target_location))
 
                 yield from self.telemetry.set_location(Point(travel_destination))
 
