@@ -94,7 +94,7 @@ class GridState:
         self.sector_height = map_height / self.y_count
         self.sector_width = map_width / self.x_count
 
-        self.sector_state = {(i, j): (SectorState.notSearched, 0)
+        self.sector_state = {(i, j): [SectorState.notSearched, 0]
                              for i, j in itertools.product(range(self.x_count), range(self.y_count))}
 
     # Checks whether the given position is within the sector
@@ -108,6 +108,9 @@ class GridState:
                position.longitude >= bottom_left.longitude and \
                position.longitude <= top_right.longitude
 
+    def set_state_for(self, sector_index, state):
+        self.sector_state[sector_index][0] = state
+
     def state_for(self, sector_index):
         return self.sector_state[sector_index][0]
 
@@ -120,20 +123,18 @@ class GridState:
         bottom_right = bottom_left.point_at_vector(self.sector_width, 90)
         top_left = bottom_left.point_at_vector(self.sector_height, 0)
         top_right = bottom_right.point_at_vector(self.sector_height, 0)
-        print('width: ' + str(self.sector_width) + ' height: ' + str(self.sector_height))
-        print('bl: ' + str(bottom_left) + ' br: ' + str(bottom_right) + ' tl: ' + str(top_left) + ' tr: ' + str(top_right))
+        print(' bl: ' + str(bottom_left) + '\n br: ' + str(bottom_right) + '\n tl: ' + str(top_left) + '\n tr: ' + str(top_right))
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
-        distance = math.hypot(sector_index[0] * self.sector_width, sector_index[1] * self.sector_height)
-        return self.origin.point_at_vector(distance, 45)
+        return self.origin.point_at_xy_distance(sector_index[0] * self.sector_width, sector_index[1] * self.sector_height)
 
     def get_closest_unclaimed(self, position):
-        min_distance = None
+        min_distance = (None, None)
         for i, j in itertools.product(range(self.x_count), range(self.y_count)):
             if self.state_for((i, j)) == SectorState.notSearched:
                 distance = self.get_distance_to((i, j), position)
-                if min_distance is None or min_distance[1] > distance:
+                if min_distance[0] is None or min_distance[1] > distance:
                     min_distance = ((i, j), distance)
         return min_distance[0]
 

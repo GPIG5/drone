@@ -36,6 +36,7 @@ class SectorController(Layer):
         self.target_radius = config.getfloat('target_radius')  # The radius within which the drone must be to be considered as "arrived"
         self.searching_state = None
         self.grid_state = None
+        self.trip_count = 0
 
     def execute_layer(self, current_output):
         self.grid_state = self.data_store.get_grid_state()
@@ -45,40 +46,46 @@ class SectorController(Layer):
         if self.target_sector is None:
             self.calculate_target()
 
-        if self.state == State.moving:
-            if self.within_target():
-                print('within_target')
-                if self.target_unclaimed():
-                    # We claim the sector and start searching it
-                    action = self.perform_search()
-                    action.claim_sector = self.target_sector
-                    return action
-                else:
-                    # Otherwise we calculate new target
-                    self.calculate_target()
-            return self.move_to_target()
-
-        elif self.state == State.searching:
-            print('searching')
-            if self.search_complete():
-                self.state = State.moving
-                self.calculate_target()
-                return self.move_to_target()
-            else:
-                return self.perform_search()
-
+        if self.target_sector is None:
+            return current_output
         else:
-            raise UnspecifiedState(self.state)
+            if self.state == State.moving:
+                if self.within_target():
+                    if self.target_unclaimed():
+                        # We claim the sector and start searching it
+                        self.claim_target()
+                        action = self.perform_search()
+                        action.claim_sector = self.target_sector
+                        return action
+                    else:
+                        # Otherwise we calculate new target
+                        self.calculate_target()
+                return self.move_to_target()
+            elif self.state == State.searching:
+                if self.search_complete():
+                    self.completed_target()
+                    self.state = State.moving
+                    self.calculate_target()
+                    return self.move_to_target()
+                else:
+                    return self.perform_search()
+            else:
+                raise UnspecifiedState(self.state)
 
     def target_unclaimed(self):
         return self.grid_state.state_for(self.target_sector) == SectorState.notSearched
+
+    def claim_target(self):
+        self.grid_state.set_state_for(self.target_sector, SectorState.being_searched)
 
     def within_target(self):
         return self.grid_state.position_within_sector(self.target_sector,
                                                       self.telemetry.get_location())
 
+    def completed_target(self):
+        self.grid_state.set_state_for(self.target_sector, SectorState.searched)
+
     def perform_search(self):
-        print('perform_search')
         if self.state != State.searching:
             # Start at top-left and scan through until the bottom right is within range
             current_position = self.telemetry.get_location()
@@ -86,7 +93,9 @@ class SectorController(Layer):
             print('Current: ' + str(current_position) + ' Top Left: ' + str(top_left))
             self.move_target = top_left.point_at_vector(self.detection_radius, 180)
             print('Move Target: ' + str(self.move_target))
+            self.state = State.searching
             self.searching_state = SearchState.initial
+            self.trip_count = 0
 
         # If you are close enough to target calculate next target/do not move if complete
         if self.telemetry.get_location().distance_to(self.move_target) < self.target_radius:
@@ -102,6 +111,7 @@ class SectorController(Layer):
 
             elif self.searching_state == SearchState.moving_right or self.searching_state == SearchState.moving_left:
                 self.old_search_state = self.searching_state
+                self.trip_count += 1
                 self.searching_state = SearchState.moving_down
                 self.move_target = old_target.point_at_vector(self.detection_radius*2, 180)
 
@@ -118,11 +128,16 @@ class SectorController(Layer):
     def calculate_target(self):
         current_position = self.telemetry.get_location()
         self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
-        self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
+        if self.target_sector is not None:
+            self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
+        else:
+            self.move_target = None
 
     def move_to_target(self):
-        print('Moving to Target: ' + str(self.move_target))
-        return Action(self.move_target)
+        if self.move_target is not None:
+            return Action(self.move_target)
+        else:
+            return Action()
 
     def search_complete(self):
 
@@ -138,9 +153,12 @@ class SectorController(Layer):
 
         corners = self.grid_state.get_sector_corners(self.target_sector)
 
-        if trip_count % 2 == 0:
-            # If the number of trips is even, then we are looking for bottom-left corner in range
-            return current_location.distance_to(corners[0]) < self.detection_radius
+        if trip_count == self.trip_count:
+            if trip_count % 2 == 0:
+                # If the number of trips is even, then we are looking for bottom-left corner in range
+                return current_location.distance_to(corners[0]) < self.detection_radius
+            else:
+                # otherwise we are looking for bottom-right
+                return current_location.distance_to(corners[1]) < self.detection_radius
         else:
-            # otherwise we are looking for bottom-right
-            return current_location.distance_to(corners[1]) < self.detection_radius
+            return False
