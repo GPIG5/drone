@@ -92,7 +92,7 @@ def drone(*configs):
     )
 
 
-def multi_main(config_file):
+def main(config_file):
     config = configparser.ConfigParser()
 
     config.read(config_file)
@@ -116,15 +116,6 @@ def multi_main(config_file):
     loop = asyncio.get_event_loop()
     loop.run_until_complete(drone(*configs))
     loop.close()
-
-
-def main(config_file):
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(drone(config))
-    loop.close()
-
 
 def multi_fork_main(config_file, num_of_drones):
     config = configparser.ConfigParser()
@@ -168,10 +159,7 @@ if __name__ == "__main__":
 
     # execute only if run as a script
     if len(arguments) > 1 and "multi" in arguments:
-        if "fork" in arguments:
-            multi_fork_main(config_file, int(arguments[arguments.index("fork") + 1]))
-        else:
-            multi_main(config_file)
+        multi_fork_main(config_file, int(arguments[arguments.index("fork") + 1]))
     else:
         main(config_file)
 
