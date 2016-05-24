@@ -25,3 +25,6 @@ cohesion_degree = 75
 [engine]
 speed = 50
 travel_time = 1
+
+[defects]
+leaky_battery = False
