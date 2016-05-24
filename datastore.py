@@ -1,10 +1,10 @@
 import asyncio
 from enum import Enum
-from geopy.distance import great_circle
-import time
 import itertools
 import math
-from point import Point
+import time
+
+from point import Point, Space
 
 
 class Drone:
@@ -59,12 +59,27 @@ class Datastore:
 
     @asyncio.coroutine
     def startup(self):
+        yield from asyncio.gather(self.update_status(), self.update_grid_claim(), self.update_grid_complete())
+
+    @asyncio.coroutine
+    def update_status(self):
         while True:
             st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
             d = Drone(st.origin, st.battery, st.location, st.timestamp)
             self.drone_state[d.uuid] = d
             # print("got message from: " + d.uuid)
 
+    @asyncio.coroutine
+    def update_grid_claim(self):
+        while True:
+            msg = yield from self.messagedispatcher.wait_for_message("mesh", "claim")
+            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched)
+
+    @asyncio.coroutine
+    def update_grid_complete(self):
+        while True:
+            msg = yield from self.messagedispatcher.wait_for_message("mesh", "complete")
+            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched)
 
 class SectorState(Enum):
     searched = 1
@@ -147,3 +162,7 @@ class GridState:
     def get_distance_to(self, sector_index, position):
         corners = self.get_sector_corners(sector_index)
         return min([position.distance_to(corners[i]) for i in range(4)])
+
+    def get_sector_space(self, sector_index):
+        corners = self.get_sector_corners(sector_index)
+        return Space(corners[0], corners[3])
