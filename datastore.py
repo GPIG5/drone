@@ -1,6 +1,7 @@
 import asyncio
 import itertools
 from enum import Enum
+from geopy.distance import great_circle
 
 import time
 
@@ -75,17 +76,18 @@ class SectorState(Enum):
 
 class GridState:
     def __init__(self, space, detection_radius):
+        detection_radius_multiplier = 15
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
         top_right = space.top_right
         self.origin = bottom_left
         self.origin.altitude = 100
 
-        map_height = top_right.latitude - bottom_left.latitude
-        map_width = top_right.longitude - bottom_left.longitude
+        map_height = top_right.longitude - bottom_left.longitude
+        map_width = top_right.latitude - bottom_left.latitude
 
-        pre_sector_height = 5 * detection_radius
-        pre_sector_width = 5 * detection_radius
+        pre_sector_height = great_circle(meters=detection_radius_multiplier*detection_radius).destination(bottom_left, 90).longitude - bottom_left.longitude
+        pre_sector_width = great_circle(meters=detection_radius_multiplier*detection_radius).destination(bottom_left, 0).latitude - bottom_left.latitude
 
         self.y_count = int(map_height / pre_sector_height) + 1
         self.x_count = int(map_width / pre_sector_width) + 1
