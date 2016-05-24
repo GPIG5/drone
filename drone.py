@@ -98,6 +98,8 @@ def drone(config):
     )
 
 def run_coroutine(coroutine, arg):
+    oldloop = asyncio.get_event_loop()
+    oldloop.close()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     ret = loop.run_until_complete(coroutine(arg))
@@ -111,6 +113,8 @@ def run_drone(config):
     return run_coroutine(drone, config)
 
 def main():
+    oldloop = asyncio.get_event_loop()
+    oldloop.close()
     multiprocessing.set_start_method('spawn')
 
     print("Bootstrapping drone configuration")
