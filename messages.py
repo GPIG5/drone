@@ -153,3 +153,20 @@ class DeployMesh(MeshMessage):
         self = MeshMessage.from_json(d, self)
         self.space = Space.from_json(d["data"]["space"])
         return self
+
+class UploadDirect(DirectMessage):
+    def __init__(self, uuid, images):
+        DirectMessage.__init__(self, uuid)
+        self.images = images
+    def to_json(self):
+        d = DirectMessage.to_json(self)
+        d["data"]["images"] = self.images
+        d["data"]["datatype"] = "upload"
+        return d
+    @classmethod
+    def from_json(cls, d, self=None):
+        if self == None:
+            self = cls.__new__(cls)
+        self = DirectMessage.from_json(d, self)
+        self.images = d["data"]["images"]
+        return self

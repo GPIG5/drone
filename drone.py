@@ -4,6 +4,8 @@ import asyncio
 import configparser
 from enum import Enum
 import uuid
+import sys
+from ast import literal_eval as make_tuple
 
 from communicator import Communicator
 from datastore import Datastore
@@ -25,7 +27,7 @@ class Drone:
         self.telemetry = Telemetry(self.config['telemetry'], self.communicator)
         self.datastore = Datastore(self.config['swarm'], self.messagedispatcher)
         self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
-        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher)
+        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher, self.communicator)
         self.c2_reactor = self.navigator.c2_reactor
         self.mesh_controller = MeshController(self.config['DEFAULT'], self.messagedispatcher, self.communicator)
         self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
@@ -45,17 +47,17 @@ class Drone:
     def startup(self):
         return
 
+    @asyncio.coroutine
     def run(self):
-        loop = asyncio.get_event_loop()
         inittasks = [
             self.communicator,
             self.telemetry,
             self.detection
         ]
         print("starting init tasks")
-        loop.run_until_complete(asyncio.gather(
+        yield from asyncio.gather(
             *[x.initialise() for x in inittasks]
-        ))
+        )
         tasks = [
             self,
             self.datastore,
@@ -68,19 +70,49 @@ class Drone:
             self.c2_reactor
         ]
         print("starting main tasks")
-        loop.run_until_complete(asyncio.gather(
+        yield from asyncio.gather(
             *[x.startup() for x in tasks]
-        ))
-        loop.close()
+        )
 
+@asyncio.coroutine
+def drone(*configs):
+    return(
+        yield from asyncio.gather(
+            *[Drone(config).run() for config in configs]
+        )
+    )
+
+def multi_main():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    num_drones = int(config["main"]["num_drones"])
+    config = None
+    configs = []
+    for i in range(0, num_drones):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        loc = tuple(
+            [float(x) for x in make_tuple(
+                config["telemetry"]["start_location"]
+            )]
+        )
+        nloc = (loc[0] + i * 0.001, loc[1] + i * 0.001, loc[2])
+        config["telemetry"]["start_location"] = str(nloc)
+        configs.append(config)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(drone(*configs))
+    loop.close()
 
 def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
-
-    drone = Drone(config)
-    drone.run()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(drone(config))
+    loop.close()
 
 if __name__ == "__main__":
     # execute only if run as a script
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "multi":
+        multi_main()
+    else:
+        main()

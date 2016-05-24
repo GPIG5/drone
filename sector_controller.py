@@ -54,21 +54,21 @@ class SectorController(Layer):
                     if self.target_unclaimed():
                         # We claim the sector and start searching it
                         self.claim_target()
-                        action = self.perform_search()
+                        action = self.perform_search(current_output)
                         action.claim_sector = self.target_sector
                         return action
                     else:
                         # Otherwise we calculate new target
                         self.calculate_target()
-                return self.move_to_target()
+                return self.move_to_target(current_output)
             elif self.state == State.searching:
                 if self.search_complete():
                     self.completed_target()
                     self.state = State.moving
                     self.calculate_target()
-                    return self.move_to_target()
+                    return self.move_to_target(current_output)
                 else:
-                    return self.perform_search()
+                    return self.perform_search(current_output)
             else:
                 raise UnspecifiedState(self.state)
 
@@ -85,14 +85,12 @@ class SectorController(Layer):
     def completed_target(self):
         self.grid_state.set_state_for(self.target_sector, SectorState.searched)
 
-    def perform_search(self):
+    def perform_search(self, current_output):
         if self.state != State.searching:
             # Start at top-left and scan through until the bottom right is within range
             current_position = self.telemetry.get_location()
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
-            print('Current: ' + str(current_position) + ' Top Left: ' + str(top_left))
             self.move_target = top_left.point_at_vector(self.detection_radius, 180)
-            print('Move Target: ' + str(self.move_target))
             self.state = State.searching
             self.searching_state = SearchState.initial
             self.trip_count = 0
@@ -123,7 +121,8 @@ class SectorController(Layer):
                     self.searching_state = SearchState.moving_left
                     self.move_target = old_target.point_at_vector(self.grid_state.sector_width, 270)
 
-        return Action(self.move_target)
+        current_output.move = self.move_target
+        return current_output
 
     def calculate_target(self):
         current_position = self.telemetry.get_location()
@@ -133,11 +132,10 @@ class SectorController(Layer):
         else:
             self.move_target = None
 
-    def move_to_target(self):
+    def move_to_target(self, current_output):
         if self.move_target is not None:
-            return Action(self.move_target)
-        else:
-            return Action()
+            current_output.move = self.move_target
+        return current_output
 
     def search_complete(self):
 
