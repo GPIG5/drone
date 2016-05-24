@@ -14,6 +14,7 @@ import multiprocessing
 import sys
 
 import io
+import subprocess
 
 from communicator import Communicator
 from datastore import Datastore
@@ -115,7 +116,7 @@ def run_drone(config):
 def main():
     oldloop = asyncio.get_event_loop()
     oldloop.close()
-    multiprocessing.set_start_method('spawn')
+    multiprocessing.set_start_method('forkserver')
 
     print("Bootstrapping drone configuration")
     config = configparser.ConfigParser()
@@ -149,6 +150,8 @@ def main():
         return multi_drone_coroutine(configs)
     elif multi_drone == "hybrid":
         return multi_drone_hybrid(configs)
+    elif multi_drone == "batch":
+        return multi_drone_batch(configs)
     elif multi_drone == "none":
         if len(configs) == 1:
             return single_drone(configs[0])
@@ -199,6 +202,18 @@ def multi_drone_process(configs):
     print("Beginning procedural multidrone")
     print("Using " + str(len(configs)) + " processes")
     return run_processes(run_drone, configs)
+
+def multi_drone_batch(configs):
+    print("Beginning batched multidrone")
+    print("Using " + str(len(configs)) + " processes")
+    ps = []
+    for config in configs:
+        fn = str(uuid.uuid4())
+        with open(fn, 'w') as configfile:
+            config.write(configfile)
+        ps.append(subprocess.Popen(["python3", "simple.py", fn]))
+    [p.wait() for p in ps]
+
 
 def single_drone(config):
     print("Beginning without any multidrone")
