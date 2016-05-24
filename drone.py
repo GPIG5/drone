@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     # execute only if run as a script
     if len(arguments) > 1 and "multi" in arguments:
-        multi_fork_main(config_file, int(arguments[arguments.index("fork") + 1]))
+        multi_fork_main(config_file, int(arguments[arguments.index("multi") + 1]))
     else:
         main(config_file)
 
