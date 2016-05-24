@@ -90,7 +90,7 @@ class SectorState(Enum):
 
 class GridState:
     def __init__(self, space, detection_radius):
-        detection_radius_multiplier = 15/12
+        detection_radius_multiplier = 15/6
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
         top_right = space.top_right
