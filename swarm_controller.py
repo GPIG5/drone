@@ -107,7 +107,21 @@ class SwarmController(Layer):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
 
     def coherence_needed(self):
-        return time.time() - self.aggregation_timer > self.aggregation_timeout
+        # The requirements for coherence are an extension of the very rudimentary requirements specified in the omega
+        # algorithm to accomodate the more complex function of the swarm.
+        # The idea is that if the aggregation timer runs out, we check whether the center
+        # of mass would be within radio range if another aggregation timer ran out
+
+        if time.time() - self.aggregation_timer > self.aggregation_timeout:
+            current_position = self.telemetry.get_location()
+            center_of_mass = self.compute_neighbour_mass_center()
+            distance_to_mass = center_of_mass.distance_to(current_position)
+            if distance_to_mass < self.radio_radius/2:
+                self.aggregation_timer = time.time()
+            else:
+                return True
+        else:
+            return False
 
     def perform_coherence(self, current_output):
         if self.state != State.coherence:
@@ -115,37 +129,16 @@ class SwarmController(Layer):
             self.state = State.coherence
 
             current_position = self.telemetry.get_location()
-            neighbours_in_range = self.data_store.drones_in_range_of(current_position, self.radio_radius,
-                                                                     timeout=self.drone_timeout)
+            center_of_mass = self.compute_neighbour_mass_center()
 
-            if len(neighbours_in_range) != 0:
-                # We find the center of mass by averaging. Mass of all points is considered 1
-                totalmass = 0
-                total_latitude = 0
-                total_longitude = 0
-                total_altitude = 0
-                for i in range(len(neighbours_in_range)):
-                    totalmass += 1
-                    total_latitude += neighbours_in_range[i].latitude
-                    total_longitude += neighbours_in_range[i].longitude
-                    total_altitude += neighbours_in_range[i].altitude
-
-                center_of_mass = Point(
-                    latitude=total_latitude / totalmass,
-                    longitude=total_longitude / totalmass,
-                    altitude=total_altitude / totalmass)
-
-                # We move only partially towards the center of mass
-                self.target = Point(
-                    latitude=current_position.latitude +
-                             (center_of_mass.latitude - current_position.latitude) * self.cohesion_degree,
-                    longitude=current_position.longitude +
-                             (center_of_mass.longitude - current_position.longitude) * self.cohesion_degree,
-                    altitude=current_position.altitude +
-                             (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
-
-            else:
-                self.target = current_position
+            # We move only partially towards the center of mass
+            self.target = Point(
+                latitude=current_position.latitude +
+                         (center_of_mass.latitude - current_position.latitude) * self.cohesion_degree,
+                longitude=current_position.longitude +
+                          (center_of_mass.longitude - current_position.longitude) * self.cohesion_degree,
+                altitude=current_position.altitude +
+                         (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
 
             print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
                   "CURRENT POSITION: " + str(current_position) +
@@ -153,6 +146,30 @@ class SwarmController(Layer):
 
         current_output.move = self.target
         return current_output
+
+    def compute_neighbour_mass_center(self):
+        current_position = self.telemetry.get_location()
+        neighbours_in_range = self.data_store.drones_in_range_of(current_position, self.radio_radius,
+                                                                 timeout=self.drone_timeout)
+
+        if len(neighbours_in_range) != 0:
+            # We find the center of mass by averaging. Mass of all points is considered 1
+            totalmass = 0
+            total_latitude = 0
+            total_longitude = 0
+            total_altitude = 0
+            for i in range(len(neighbours_in_range)):
+                totalmass += 1
+                total_latitude += neighbours_in_range[i].latitude
+                total_longitude += neighbours_in_range[i].longitude
+                total_altitude += neighbours_in_range[i].altitude
+
+            return Point(
+                latitude=total_latitude / totalmass,
+                longitude=total_longitude / totalmass,
+                altitude=total_altitude / totalmass)
+        else:
+            return current_position
 
     def coherence_complete(self):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
