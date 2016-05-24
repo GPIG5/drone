@@ -91,8 +91,8 @@ class GridState:
         map_height = bottom_left.distance_to(top_left)
         map_width = bottom_left.distance_to(bottom_right)
 
-        pre_sector_height = map_height / (detection_radius*detection_radius_multiplier)
-        pre_sector_width = map_width / (detection_radius*detection_radius_multiplier)
+        pre_sector_height = detection_radius*detection_radius_multiplier
+        pre_sector_width = detection_radius*detection_radius_multiplier
 
         self.y_count = int(map_height / pre_sector_height) + 1
         self.x_count = int(map_width / pre_sector_width) + 1
