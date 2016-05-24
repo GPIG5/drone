@@ -41,16 +41,17 @@ class Detection:
             finally:
                 yield from f.close()
 
-            # Write co-ords to file
-            f = yield from aiofiles.open(self.pinor_file, mode='a')
-            try:
-                for pinor in msg.pinor:
-                    point = pinor.to_json()
-                    yield from f.write(timestamp + ',' + str(point['lat']) + ',' + str(point['lon']) + ',' + str(point['alt']) + ',' + timestr + '.jpg' + '\n')
-            finally:
-                yield from f.close()
+            if msg.pinor:
+                # Write co-ords to file
+                f = yield from aiofiles.open(self.pinor_file, mode='a')
+                try:
+                    for pinor in msg.pinor:
+                        point = pinor.to_json()
+                        yield from f.write(timestamp + ',' + str(point['lat']) + ',' + str(point['lon']) + ',' + str(point['alt']) + ',' + timestr + '.jpg' + '\n')
+                finally:
+                    yield from f.close()
 
-            yield from self.communicator.send_message(PinorMesh(self.uuid, self.uuid, msg.pinor))
+                yield from self.communicator.send_message(PinorMesh(self.uuid, self.uuid, msg.pinor))
 
     def get_pinor(self):
         return self.pinor
