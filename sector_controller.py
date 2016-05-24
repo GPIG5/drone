@@ -134,7 +134,14 @@ class SectorController(Layer):
     def calculate_target(self):
         current_position = self.telemetry.get_location()
         self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
-        self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
+
+        corners = self.grid_state.get_sector_corners(self.target_sector)
+
+        self.move_target = Point(
+            longitude=(corners[0].longitude + corners[2].longitude) / 2,
+            latitude=(corners[0].longitude + corners[2].longitude) / 2,
+            altitude=corners[0].altitude
+        )
         print('Move Target: ' + str(self.move_target))
 
     def move_to_target(self, current_output):
