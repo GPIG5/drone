@@ -138,10 +138,11 @@ class SectorController(Layer):
         corners = self.grid_state.get_sector_corners(self.target_sector)
 
         self.move_target = Point(
-            longitude=(corners[0].longitude + corners[2].longitude) / 2,
-            latitude=(corners[0].longitude + corners[2].longitude) / 2,
+            longitude=(corners[0].longitude + corners[3].longitude) / 2,
+            latitude=(corners[0].latitude + corners[3].latitude) / 2,
             altitude=corners[0].altitude
         )
+        self.move_target = corners[0]
         print('Move Target: ' + str(self.move_target))
 
     def move_to_target(self, current_output):
