@@ -82,7 +82,7 @@ def drone(*configs):
         )
     )
 
-def multi_main():
+def main():
     config = configparser.ConfigParser()
     config.read('config.ini')
     num_drones = int(config["main"]["num_drones"])
@@ -103,16 +103,7 @@ def multi_main():
     loop.run_until_complete(drone(*configs))
     loop.close()
 
-def main():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(drone(config))
-    loop.close()
-
 if __name__ == "__main__":
     # execute only if run as a script
-    if len(sys.argv) > 1 and sys.argv[1] == "multi":
-        multi_main()
-    else:
-        main()
+    main()
+

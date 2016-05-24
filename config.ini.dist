@@ -3,7 +3,7 @@ host = 127.0.0.1
 port = 5555
 
 [main]
-num_drones = 5
+num_drones = 1
 
 [telemetry]
 battery_size = 1800
