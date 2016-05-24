@@ -31,6 +31,14 @@ class Messagedispatcher:
                 "deploy": {
                     "class": messages.DeployMesh,
                     "queue": Queue()
+                },
+                "claim": {
+                    "class": messages.ClaimMesh,
+                    "queue": Queue()
+                },
+                "complete": {
+                    "class": messages.CompleteMesh,
+                    "queue": Queue()
                 }
             }
         }

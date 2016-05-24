@@ -53,17 +53,15 @@ class SectorController(Layer):
                 if self.within_target():
                     if self.target_unclaimed():
                         # We claim the sector and start searching it
-                        self.claim_target()
-                        action = self.perform_search(current_output)
-                        action.claim_sector = self.target_sector
-                        return action
+                        current_output.claim_sector = self.target_sector
+                        return self.perform_search(current_output)
                     else:
                         # Otherwise we calculate new target
                         self.calculate_target()
                 return self.move_to_target(current_output)
             elif self.state == State.searching:
                 if self.search_complete():
-                    self.completed_target()
+                    current_output.complete_sector = self.target_sector
                     self.state = State.moving
                     self.calculate_target()
                     return self.move_to_target(current_output)
@@ -75,15 +73,9 @@ class SectorController(Layer):
     def target_unclaimed(self):
         return self.grid_state.state_for(self.target_sector) == SectorState.notSearched
 
-    def claim_target(self):
-        self.grid_state.set_state_for(self.target_sector, SectorState.being_searched)
-
     def within_target(self):
         return self.grid_state.position_within_sector(self.target_sector,
                                                       self.telemetry.get_location())
-
-    def completed_target(self):
-        self.grid_state.set_state_for(self.target_sector, SectorState.searched)
 
     def perform_search(self, current_output):
         if self.state != State.searching:

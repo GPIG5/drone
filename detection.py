@@ -50,7 +50,7 @@ class Detection:
             finally:
                 yield from f.close()
 
-            yield from self.communicator.send(PinorMesh(self.uuid, self.uuid, msg.pinor).to_json())
+            yield from self.communicator.send_message(PinorMesh(self.uuid, self.uuid, msg.pinor))
 
     def get_pinor(self):
         return self.pinor

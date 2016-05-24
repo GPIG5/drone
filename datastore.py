@@ -3,7 +3,7 @@ from enum import Enum
 import itertools
 import math
 
-from point import Point
+from point import Point, Space
 
 
 class Drone:
@@ -141,3 +141,7 @@ class GridState:
     def get_distance_to(self, sector_index, position):
         corners = self.get_sector_corners(sector_index)
         return min([position.distance_to(corners[i]) for i in range(4)])
+
+    def get_sector_space(self, sector_index):
+        corners = self.get_sector_corners(sector_index)
+        return Space(corners[0], corners[3])
