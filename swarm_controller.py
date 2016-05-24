@@ -1,6 +1,8 @@
+import random
 import time
 from enum import Enum
 from layer import *
+from geopy.distance import great_circle
 
 
 class State(Enum):
@@ -25,6 +27,7 @@ class SwarmController(Layer):
         self.radio_radius = config.getint('radio_radius')
         self.drone_timeout = config.getint('drone_timeout')
         self.cohesion_degree = config.getint('cohesion_degree')/100
+        self.critical_avoidance_range = config.getint('critical_avoidance_range')
 
     def execute_layer(self, current_output):
 
@@ -95,9 +98,16 @@ class SwarmController(Layer):
                 longitude=avoidance_longitude,
                 altitude=avoidance_altitude)
 
+            distance_to_avoidance_target = self.target.distance_to(current_position)
+
+            # If the avoidance target is too close we instead move to a random direction
+            if distance_to_avoidance_target < 5:
+                print('CRITICAL AVOIDANCE DETECTED')
+                self.target = great_circle(meters=self.critical_avoidance_range).destination(current_position, random.uniform(0,360))
+
             print("AVOIDANCE TARGET: " + str(self.target) +
                   "CURRENT POSITION: " + str(current_position) +
-                  "DISTANCE: " + str(self.target.distance_to(current_position)))
+                  "DISTANCE: " + str(distance_to_avoidance_target))
 
         self.aggregation_timer = time.time()
         current_output.move = self.target
@@ -112,6 +122,7 @@ class SwarmController(Layer):
         # The idea is that if the aggregation timer runs out, we check whether the center
         # of mass would be within radio range if another aggregation timer ran out
 
+        # return time.time() - self.aggregation_timer > self.aggregation_timeout
         if time.time() - self.aggregation_timer > self.aggregation_timeout:
             current_position = self.telemetry.get_location()
             center_of_mass = self.compute_neighbour_mass_center()
