@@ -9,6 +9,7 @@ import uuid
 import sys
 from point import Point
 from ast import literal_eval as make_tuple
+import multiprocessing
 
 import sys
 
@@ -82,84 +83,110 @@ class Drone:
             *[x.startup() for x in tasks]
         )
 
-
 @asyncio.coroutine
-def drone(*configs):
+def codrone(configs):
     return (
         yield from asyncio.gather(
-            *[Drone(config).run() for config in configs]
+            *[drone(config) for config in configs]
         )
     )
 
+@asyncio.coroutine
+def drone(config):
+    return (
+        yield from Drone(config).run()
+    )
 
-def main(config_file):
+def run_coroutine(coroutine):
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(coroutine)
+    loop.close()
+
+def run_codrone(configs):
+    return run_coroutine(codrone(configs))
+
+def run_drone(config):
+    return run_coroutine(drone(config))
+
+def main():
+
+    print("Bootstrapping drone configuration")
     config = configparser.ConfigParser()
-
-    config.read(config_file)
-
+    config.read("config.ini")
     num_drones = int(config["main"]["num_drones"])
-
+    multi_drone = config["main"]["multi_drone"]
     config = None
 
+    print("Generating subconfigurations")
     configs = []
     for i in range(0, num_drones):
         config = configparser.ConfigParser()
-        config.read(config_file)
+        config.read("config.ini")
         loc = tuple(
             [float(x) for x in make_tuple(
                 config["telemetry"]["start_location"]
             )]
         )
-        nloc = (loc[0] + i * 0.001, loc[1] + i * 0.001, loc[2])
+        nloc = (
+            loc[0] + (i * 0.001 * (random.uniform(0, 2) - 1)),
+            loc[1] + (i * 0.001 * (random.uniform(0, 2) - 1)),
+            loc[2]
+        )
         config["telemetry"]["start_location"] = str(nloc)
         configs.append(config)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(drone(*configs))
-    loop.close()
 
-def multi_fork_main(config_file, num_of_drones):
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    start_location = Point(*make_tuple(config['telemetry']['start_location']))
-    config_names = []
+    print("Detecting multidrone configuration")
+    if multi_drone == "process":
+        return multi_drone_process(configs)
+    elif multi_drone == "coroutine":
+        return multi_drone_coroutine(configs)
+    elif multi_drone == "hybrid":
+        return multi_drone_hybrid(configs)
+    elif multi_drone == "none":
+        if len(configs) == 1:
+            return single_drone(configs[0])
+        else:
+            print("Cannot process more than one drone without multidrone")
+            return
+    else:
+        print("invalid multidrone configuration")
+        return
 
-    if not os.path.exists("configs"):
-        os.makedirs("configs")
+def multi_drone_hybrid(configs):
+    print("Beginning hybrid multidrone")
+    try:
+        cpus = multiprocessing.cpu_count()
+        print("detected number of cpus as " + str(cpus))
+    except NotImplementedError as e:
+        cpus = 8
+        print("could not detect number of cpus, assuming " + str(spus))
+    current_configs = configs
+    processes = []
+    processes_drone_num = []
+    for i in range(0, cpus):
+        n = int(round(float(len(current_configs)) / float(cpus - i)))
+        if (n > 0):
+            processes.append(current_configs[:n])
+            processes_drone_num.append(n)
+            current_configs = current_configs[n:]
+    print("Using hybrid configuration: " + " ".join(str(x) for x in processes_drone_num))
+    with multiprocessing.Pool(len(processes)) as p:
+        return p.map(run_codrone, processes)
 
-    # For every drone we want to start, we output a slightly modified config
-    for i in range(num_of_drones):
-        # Name of the new config file
-        name = "config" + str(i) + ".ini"
-        config_names.append(name)
+def multi_drone_coroutine(configs):
+    print("Beginning co-operative multidrone")
+    print("Using " + str(len(configs)) + " coroutines")
+    return run_codrone(configs)
 
-        # Vary the start location a little randomly
-        loc = Point(start_location.latitude + (random.uniform(0, 2) - 1) * 0.01,
-                    start_location.longitude + (random.uniform(0, 2) - 1) * 0.01,
-                    start_location.altitude)
-        config['telemetry']['start_location'] = str((loc.latitude, loc.longitude, loc.altitude))
+def multi_drone_process(configs):
+    print("Beginning procedural multidrone")
+    print("Using " + str(len(configs)) + " processes")
+    with multiprocessing.Pool(len(configs)) as p:
+        return p.map(run_drone, configs)
 
-        # Write the config to file
-        file = io.open("configs/" + name, 'w')
-        config.write(file)
-
-    # Then fork a new thread for each config we generated
-    for name in config_names:
-        os.system("START drone.py config configs/" + name)
-
+def single_drone(config):
+    print("Beginning without any multidrone")
+    return run_drone(config)
 
 if __name__ == "__main__":
-    config_file = None
-
-    arguments = sys.argv
-    if len(arguments) > 2 and "config" in arguments:
-        config_file = arguments[arguments.index("config") + 1]
-        print("Config with: " + config_file)
-    else:
-        config_file = 'config.ini'
-
-    # execute only if run as a script
-    if len(arguments) > 1 and "multi" in arguments:
-        multi_fork_main(config_file, int(arguments[arguments.index("multi") + 1]))
-    else:
-        main(config_file)
-
+    main()
