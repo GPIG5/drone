@@ -97,18 +97,21 @@ def drone(config):
         yield from Drone(config).run()
     )
 
-def run_coroutine(coroutine):
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(coroutine)
+def run_coroutine(coroutine, arg):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    ret = loop.run_until_complete(coroutine(arg))
     loop.close()
+    return ret
 
 def run_codrone(configs):
-    return run_coroutine(codrone(configs))
+    return run_coroutine(codrone, configs)
 
 def run_drone(config):
-    return run_coroutine(drone(config))
+    return run_coroutine(drone, config)
 
 def main():
+    multiprocessing.set_start_method('spawn')
 
     print("Bootstrapping drone configuration")
     config = configparser.ConfigParser()
@@ -152,6 +155,17 @@ def main():
         print("invalid multidrone configuration")
         return
 
+def run_processes(func, args):
+    ps = []
+    for a in args:
+        ps.append(multiprocessing.Process(target=func, args=(a,)))
+    for p in ps:
+        p.start()
+    for p in ps:
+        p.join()
+    return ps
+
+
 def multi_drone_hybrid(configs):
     print("Beginning hybrid multidrone")
     try:
@@ -170,8 +184,7 @@ def multi_drone_hybrid(configs):
             processes_drone_num.append(n)
             current_configs = current_configs[n:]
     print("Using hybrid configuration: " + " ".join(str(x) for x in processes_drone_num))
-    with multiprocessing.Pool(len(processes)) as p:
-        return p.map(run_codrone, processes)
+    return run_processes(run_codrone, processes)
 
 def multi_drone_coroutine(configs):
     print("Beginning co-operative multidrone")
@@ -181,8 +194,7 @@ def multi_drone_coroutine(configs):
 def multi_drone_process(configs):
     print("Beginning procedural multidrone")
     print("Using " + str(len(configs)) + " processes")
-    with multiprocessing.Pool(len(configs)) as p:
-        return p.map(run_drone, configs)
+    return run_processes(run_drone, configs)
 
 def single_drone(config):
     print("Beginning without any multidrone")
