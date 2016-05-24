@@ -64,6 +64,7 @@ target/
 # Config
 *.ini
 data/*
+configs/*
 
 # PyCharm
 .idea/

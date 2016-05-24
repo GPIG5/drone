@@ -12,8 +12,8 @@ id = lambda x: x
 class Reactor:
     def __init__(self, config, data_store, telemetry, message_dispatcher, communicator):
         secc = SectorController(id, data_store, telemetry, config["swarm"])
-        #swc = SwarmController(secc.execute_layer, config["swarm"], data_store, telemetry)
-        c2 = C2Reactor(secc.execute_layer, data_store, message_dispatcher, telemetry)
+        swc = SwarmController(secc.execute_layer, config["swarm"], data_store, telemetry)
+        c2 = C2Reactor(swc.execute_layer, data_store, message_dispatcher, telemetry)
         pd = PersonDetector(c2.execute_layer)
         bl = BatteryLifeChecker(pd.execute_layer, telemetry, config["DEFAULT"], communicator)
         cd = CollisionDetector(bl.execute_layer, data_store, telemetry)

@@ -2,15 +2,17 @@ import asyncio
 from enum import Enum
 import itertools
 import math
+import time
 
 from point import Point, Space
 
 
 class Drone:
-    def __init__(self, uuid, battery, location):
+    def __init__(self, uuid, battery, location, last_seen):
         self.uuid = uuid
         self.battery = battery
         self.location = location
+        self.last_seen = last_seen
 
 
 class Datastore:
@@ -29,21 +31,23 @@ class Datastore:
     def all_drones(self):
         return self.drone_state
 
-    def get_position_of_drone_closest_to(self, position):
+    def get_position_of_drone_closest_to(self, position, timeout=0):
         closest = None
         closest_distance = None
         for uuid, drone in self.drone_state.items():
             distance = position.distance_to(drone.location)
-            if closest is None or closest_distance > distance:
+            # Only consult drones that haven't timed out if timeout != 0
+            if (closest is None or closest_distance > distance) \
+                    and (timeout == 0 or time.time() - drone.last_seen < timeout):
                 closest = drone.location
                 closest_distance = distance
         return closest
 
-    def drones_in_range_of(self, position, drone_range):
+    def drones_in_range_of(self, position, drone_range, timeout=0):
         locations_in_range = []
         for uuid, drone in self.drone_state.items():
             distance = position.distance_to(drone.location)
-            if distance < drone_range:
+            if distance < drone_range and (timeout == 0 or time.time() - drone.last_seen < timeout):
                 locations_in_range.append(drone.location)
         return locations_in_range
 
@@ -61,7 +65,7 @@ class Datastore:
     def update_status(self):
         while True:
             st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
-            d = Drone(st.origin, st.battery, st.location)
+            d = Drone(st.origin, st.battery, st.location, st.timestamp)
             self.drone_state[d.uuid] = d
             # print("got message from: " + d.uuid)
 
@@ -86,6 +90,8 @@ class SectorState(Enum):
 
 class GridState:
     def __init__(self, space, detection_radius):
+        detection_radius_multiplier = 15/12
+        print("GRID INITIALISED")
         bottom_left = space.bottom_left
         top_right = space.top_right
 
@@ -100,8 +106,8 @@ class GridState:
         map_height = bottom_left.distance_to(top_left)
         map_width = bottom_left.distance_to(bottom_right)
 
-        pre_sector_height = 5 * detection_radius
-        pre_sector_width = 5 * detection_radius
+        pre_sector_height = detection_radius*detection_radius_multiplier
+        pre_sector_width = detection_radius*detection_radius_multiplier
 
         self.y_count = int(map_height / pre_sector_height) + 1
         self.x_count = int(map_width / pre_sector_width) + 1
