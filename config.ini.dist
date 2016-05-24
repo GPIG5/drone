@@ -18,6 +18,8 @@ aggregation_timeout = 10
 target_radius = 1
 detection_radius = 120
 radio_radius = 2000
+drone_timeout = 10
+cohesion_degree = 75
 
 [engine]
 speed = 50

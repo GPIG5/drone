@@ -128,7 +128,15 @@ class SectorController(Layer):
         current_position = self.telemetry.get_location()
         self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
         if self.target_sector is not None:
-            self.move_target = self.grid_state.get_sector_corners(self.target_sector)[0]
+            corners = self.grid_state.get_sector_corners(self.target_sector)
+
+            self.move_target = Point(
+                longitude=(corners[0].longitude + corners[3].longitude) / 2,
+                latitude=(corners[0].latitude + corners[3].latitude) / 2,
+                altitude=corners[0].altitude
+            )
+            self.move_target = corners[0]
+            print('Move Target: ' + str(self.move_target))
         else:
             self.move_target = None
 
