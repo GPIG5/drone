@@ -5,10 +5,13 @@ from messages import StatusDirect, StatusMesh
 from point import Point
 import random
 
+
 class Telemetry:
     def __init__(self, config, communicator, defects):
         self.communicator = communicator
-        self.leaky_battery = bool(defects['leaky_battery'])
+        self.leaky_battery = 'True' == defects['leaky_battery']
+        if self.leaky_battery is True:
+            print("The battery is set to leak")
 
         self.uuid = config.get('uuid')
         self.real_battery_size = config.getfloat('battery_size')
@@ -26,7 +29,7 @@ class Telemetry:
     def startup(self):
         while True:
             if self.leaky_battery:
-                if random.randint(0,100) < 2:
+                if random.randint(0, 100) < 2:
                     self.battery_size = self.battery_size / 2
             if (self.get_battery() <= 0):
                 raise "OUT OF BATTERY"
@@ -46,7 +49,7 @@ class Telemetry:
         return self.location
 
     @asyncio.coroutine
-    def set_location(self, new_location : Point):
+    def set_location(self, new_location: Point):
         with (yield from self.location_lock):
             if new_location is None:
                 raise "lol"
