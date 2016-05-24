@@ -7,7 +7,7 @@ num_drones = 5
 
 [telemetry]
 battery_size = 1800
-start_location = (53.929472,-1.165084,100)
+start_location = (53.929472,-1.165084,75)
 
 [detection]
 data_folder = ./data/
@@ -16,11 +16,11 @@ data_folder = ./data/
 avoidance_radius = 25
 aggregation_timeout = 10
 target_radius = 1
-detection_radius = 10
+detection_radius = 120
 radio_radius = 2000
 drone_timeout = 10
 cohesion_degree = 75
 
 [engine]
-speed = 40
+speed = 50
 travel_time = 1

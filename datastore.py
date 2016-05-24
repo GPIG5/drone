@@ -1,10 +1,9 @@
 import asyncio
-import itertools
 from enum import Enum
 from geopy.distance import great_circle
-
 import time
-
+import itertools
+import math
 from point import Point
 
 
@@ -64,7 +63,7 @@ class Datastore:
             st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
             d = Drone(st.origin, st.battery, st.location, st.timestamp)
             self.drone_state[d.uuid] = d
-            # print("got message from" + d.uuid)
+            # print("got message from: " + d.uuid)
 
 
 class SectorState(Enum):
@@ -80,11 +79,17 @@ class GridState:
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
         top_right = space.top_right
-        self.origin = bottom_left
-        self.origin.altitude = 100
 
-        map_height = top_right.longitude - bottom_left.longitude
-        map_width = top_right.latitude - bottom_left.latitude
+        top_left = Point(bottom_left)
+        top_left.latitude = top_right.latitude
+        bottom_right = Point(bottom_left)
+        bottom_right.longitude = top_right.longitude
+
+        self.origin = Point(bottom_left)
+        self.origin.altitude = 75
+
+        map_height = bottom_left.distance_to(top_left)
+        map_width = bottom_left.distance_to(bottom_right)
 
         pre_sector_height = great_circle(meters=detection_radius_multiplier*detection_radius).destination(bottom_left, 90).longitude - bottom_left.longitude
         pre_sector_width = great_circle(meters=detection_radius_multiplier*detection_radius).destination(bottom_left, 0).latitude - bottom_left.latitude
@@ -95,21 +100,22 @@ class GridState:
         self.sector_height = map_height / self.y_count
         self.sector_width = map_width / self.x_count
 
-        self.sector_state = {(i, j): (SectorState.notSearched, 0)
+        self.sector_state = {(i, j): [SectorState.notSearched, 0]
                              for i, j in itertools.product(range(self.x_count), range(self.y_count))}
 
     # Checks whether the given position is within the sector
     def position_within_sector(self, sector_index, position):
         bottom_left = self.get_sector_origin(sector_index)
-        top_right = Point(
-            latitude=bottom_left.latitude + self.sector_width,
-            longitude=bottom_left.longitude + self.sector_height,
-            altitude=self.origin.altitude)
+        distance = math.hypot(self.sector_width, self.sector_height)
+        top_right = bottom_left.point_at_vector(distance, 45)
 
-        return position.latitude > bottom_left.latitude and \
-               position.latitude < top_right.latitude and \
-               position.longitude > bottom_left.longitude and \
-               position.longitude < top_right.longitude
+        return position.latitude >= bottom_left.latitude and \
+               position.latitude <= top_right.latitude and \
+               position.longitude >= bottom_left.longitude and \
+               position.longitude <= top_right.longitude
+
+    def set_state_for(self, sector_index, state):
+        self.sector_state[sector_index][0] = state
 
     def state_for(self, sector_index):
         return self.sector_state[sector_index][0]
@@ -117,37 +123,24 @@ class GridState:
     def drone_of(self, sector_index):
         return self.sector_state[sector_index][1]
 
-    # returns: bottm-left, bottom-right, top-left, top-right as a list
+    # returns: bottom-left, bottom-right, top-left, top-right as a list
     def get_sector_corners(self, sector_index):
         bottom_left = self.get_sector_origin(sector_index)
-        bottom_right = Point(
-            latitude=bottom_left.latitude + self.sector_width,
-            longitude=bottom_left.longitude,
-            altitude=bottom_left.altitude)
-        top_left = Point(
-            latitude=bottom_left.latitude,
-            longitude=bottom_left.longitude + self.sector_height,
-            altitude=bottom_left.altitude)
-        top_right = Point(
-            latitude=bottom_left.latitude + self.sector_width,
-            longitude=bottom_left.longitude + self.sector_height,
-            altitude=bottom_left.altitude)
+        bottom_right = bottom_left.point_at_vector(self.sector_width, 90)
+        top_left = bottom_left.point_at_vector(self.sector_height, 0)
+        top_right = bottom_right.point_at_vector(self.sector_height, 0)
+        # print(' bl: ' + str(bottom_left) + '\n br: ' + str(bottom_right) + '\n tl: ' + str(top_left) + '\n tr: ' + str(top_right))
         return [bottom_left, bottom_right, top_left, top_right]
 
     def get_sector_origin(self, sector_index):
-        latitude = self.origin.latitude + sector_index[0] * self.sector_width
-        longitude = self.origin.longitude + sector_index[1] * self.sector_height
-        return Point(
-            latitude=latitude,
-            longitude=longitude,
-            altitude=self.origin.altitude)
+        return self.origin.point_at_xy_distance(sector_index[0] * self.sector_width, sector_index[1] * self.sector_height)
 
     def get_closest_unclaimed(self, position):
-        min_distance = None
+        min_distance = (None, None)
         for i, j in itertools.product(range(self.x_count), range(self.y_count)):
             if self.state_for((i, j)) == SectorState.notSearched:
                 distance = self.get_distance_to((i, j), position)
-                if min_distance is None or min_distance[1] > distance:
+                if min_distance[0] is None or min_distance[1] > distance:
                     min_distance = ((i, j), distance)
         return min_distance[0]
 
