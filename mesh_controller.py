@@ -18,7 +18,7 @@ class MeshController:
             origin = msg.origin
             if self.add_message(ts, origin):
                 msg.uuid = self.uuid
-                self.communicator.send_message(msg)
+#                self.communicator.send_message(msg)
     def add_message(self, ts, origin):
         if origin in self.origin_map:
             l = self.origin_map[origin]

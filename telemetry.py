@@ -7,7 +7,7 @@ import random
 
 
 class Telemetry:
-    def __init__(self, config, communicator, defects):
+    def __init__(self, config, communicator, defects, travel_time):
         self.communicator = communicator
         self.leaky_battery = ('True' == defects['leaky_battery'])
         if self.leaky_battery:
@@ -20,6 +20,7 @@ class Telemetry:
         self.location = self.initial_location
         self.location_lock = asyncio.Lock()
         self.start_time = 0
+        self.travel_time = travel_time
 
     @asyncio.coroutine
     def initialise(self):
@@ -43,7 +44,7 @@ class Telemetry:
             yield from self.communicator.send(env_status.to_json())
             yield from self.communicator.send(mesh_status.to_json())
 
-            yield from asyncio.sleep(1)
+            yield from asyncio.sleep(self.travel_time)
 
     def get_location(self):
         return self.location
