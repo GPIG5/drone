@@ -71,7 +71,8 @@ class SwarmController(Layer):
 
         if position_of_closest is not None:
             # print("Distance to closest: " + str(current_position.distance_to(position_of_closest)))
-            return current_position.distance_to(position_of_closest) < self.avoidance_radius
+            return current_position.altitude == position_of_closest.altitude and \
+                   current_position.distance_to(position_of_closest) < self.avoidance_radius
         else:
             return False
 
