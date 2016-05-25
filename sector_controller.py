@@ -58,6 +58,10 @@ class SectorController(Layer):
                     else:
                         # Otherwise we calculate new target
                         self.calculate_target()
+
+                # Else if the target got claimed while moving, calculate new target
+                elif not self.target_unclaimed():
+                    self.calculate_target()
                 return self.move_to_target(current_output)
             elif self.state == State.searching:
                 if self.search_complete():
