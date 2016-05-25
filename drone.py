@@ -116,7 +116,6 @@ def run_drone(config):
 def main():
     oldloop = asyncio.get_event_loop()
     oldloop.close()
-    multiprocessing.set_start_method('forkserver')
 
     print("Bootstrapping drone configuration")
     config = configparser.ConfigParser()
