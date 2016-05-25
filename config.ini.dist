@@ -4,7 +4,7 @@ port = 5555
 
 [main]
 num_drones = 1
-multi_drone = hybrid
+multi_drone = batch
 
 [telemetry]
 battery_size = 1800
