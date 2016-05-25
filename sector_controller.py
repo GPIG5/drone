@@ -40,7 +40,7 @@ class SectorController(Layer):
 
     def execute_layer(self, current_output):
         self.grid_state = self.data_store.get_grid_state()
-        if (self.grid_state == None):
+        if self.grid_state is None:
             return Layer.execute_layer(self, current_output)
 
         if self.target_sector is None:
@@ -87,6 +87,7 @@ class SectorController(Layer):
             current_position = self.telemetry.get_location()
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
             self.move_target = top_left.point_at_vector(self.detection_radius, 180)
+            self.move_target.altitude -= 10
             self.state = State.searching
             self.searching_state = SearchState.initial
             self.trip_count = 0

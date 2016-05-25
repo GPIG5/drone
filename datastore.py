@@ -101,7 +101,7 @@ class GridState:
         bottom_right.longitude = top_right.longitude
 
         self.origin = Point(bottom_left)
-        self.origin.altitude = 75
+        self.origin.altitude = 85
 
         map_height = bottom_left.distance_to(top_left)
         map_width = bottom_left.distance_to(bottom_right)
