@@ -24,10 +24,10 @@ class Point(geopy.point.Point):
     def distance_to(self, p2):
         return great_circle(self, p2).meters
 
-    def perp(self, p2):
+    def perp(self, p2, scale):
         return Point(
-            longitude = self.longitude + (self.latitude - p2.latitude),
-            latitude = self.latitude + (p2.longitude - self.longitude),
+            longitude = self.longitude + scale * (self.latitude - p2.latitude),
+            latitude = self.latitude + scale * (p2.longitude - self.longitude),
             altitude = self.altitude
         )
 

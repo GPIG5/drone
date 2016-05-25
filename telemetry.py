@@ -9,8 +9,8 @@ import random
 class Telemetry:
     def __init__(self, config, communicator, defects):
         self.communicator = communicator
-        self.leaky_battery = 'True' == defects['leaky_battery']
-        if self.leaky_battery is True:
+        self.leaky_battery = ('True' == defects['leaky_battery'])
+        if self.leaky_battery:
             print("The battery is set to leak")
 
         self.uuid = config.get('uuid')
