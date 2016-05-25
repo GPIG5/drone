@@ -2,23 +2,9 @@ import drone
 import configparser
 import sys
 
-
-config = configparser.ConfigParser()
-config.read(sys.argv[1])
-drone.run_drone(config)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+configs = []
+for configfile in sys.argv[1:]:
+	config = configparser.ConfigParser()
+	config.read("data/" + configfile + ".ini")
+	configs.append(config)
+drone.run_codrone(configs)

@@ -209,7 +209,7 @@ def multi_drone_batch(configs):
     ps = []
     for config in configs:
         fn = str(uuid.uuid4())
-        with open(fn, 'w') as configfile:
+        with open("data/" + fn + ".ini", 'w') as configfile:
             config.write(configfile)
         ps.append(subprocess.Popen(["python3", "simple.py", fn]))
     [p.wait() for p in ps]
