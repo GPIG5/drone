@@ -115,9 +115,6 @@ def run_drone(config):
     return run_coroutine(drone, config)
 
 def main():
-    if os.path.exists('data'):
-        shutil.rmtree('data')
-    os.mkdir('data')
     oldloop = asyncio.get_event_loop()
     oldloop.close()
 
@@ -125,7 +122,11 @@ def main():
     config = configparser.ConfigParser()
     config.read("config.ini")
     num_drones = int(config["main"]["num_drones"])
-    multi_drone = config["main"]["multi_drone"]
+    df = config['detection']['data_folder']
+    if os.path.exists(df):
+        print("deleting data")
+        shutil.rmtree(df)
+    os.mkdir(df)
     config = None
 
     print("Generating subconfigurations")
