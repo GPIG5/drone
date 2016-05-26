@@ -123,7 +123,7 @@ class SectorController(Layer):
 
     def calculate_target(self):
         current_position = self.telemetry.get_location()
-        self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
+        self.target_sector = self.data_store.get_closest_unclaimed(current_position, 10)
         if self.target_sector is not None:
             corners = self.grid_state.get_sector_corners(self.target_sector)
 
