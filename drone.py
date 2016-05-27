@@ -10,6 +10,7 @@ import sys
 from point import Point
 from ast import literal_eval as make_tuple
 import multiprocessing
+import shutil
 
 import sys
 
@@ -34,7 +35,7 @@ class Drone:
 
         self.communicator = Communicator(self.config["communicator"])
         self.messagedispatcher = Messagedispatcher(self.communicator)
-        self.telemetry = Telemetry(self.config['telemetry'], self.communicator, self.config['defects'])
+        self.telemetry = Telemetry(self.config['telemetry'], self.communicator, self.config['defects'], int(self.config['engine']['travel_time']))
         self.datastore = Datastore(self.config['swarm'], self.messagedispatcher)
         self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
         self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher, self.communicator)
@@ -121,7 +122,11 @@ def main():
     config = configparser.ConfigParser()
     config.read("config.ini")
     num_drones = int(config["main"]["num_drones"])
-    multi_drone = config["main"]["multi_drone"]
+    df = config['detection']['data_folder']
+    if os.path.exists(df):
+        print("deleting data")
+        shutil.rmtree(df)
+    os.mkdir(df)
     config = None
 
     print("Generating subconfigurations")
@@ -142,24 +147,7 @@ def main():
         config["telemetry"]["start_location"] = str(nloc)
         configs.append(config)
 
-    print("Detecting multidrone configuration")
-    if multi_drone == "process":
-        return multi_drone_process(configs)
-    elif multi_drone == "coroutine":
-        return multi_drone_coroutine(configs)
-    elif multi_drone == "hybrid":
-        return multi_drone_hybrid(configs)
-    elif multi_drone == "batch":
-        return multi_drone_batch(configs)
-    elif multi_drone == "none":
-        if len(configs) == 1:
-            return single_drone(configs[0])
-        else:
-            print("Cannot process more than one drone without multidrone")
-            return
-    else:
-        print("invalid multidrone configuration")
-        return
+    return multi_drone_hybrid(configs)
 
 def run_processes(func, args):
     ps = []
@@ -170,7 +158,6 @@ def run_processes(func, args):
     for p in ps:
         p.join()
     return ps
-
 
 def multi_drone_hybrid(configs):
     print("Beginning hybrid multidrone")
@@ -191,32 +178,6 @@ def multi_drone_hybrid(configs):
             current_configs = current_configs[n:]
     print("Using hybrid configuration: " + " ".join(str(x) for x in processes_drone_num))
     return run_processes(run_codrone, processes)
-
-def multi_drone_coroutine(configs):
-    print("Beginning co-operative multidrone")
-    print("Using " + str(len(configs)) + " coroutines")
-    return run_codrone(configs)
-
-def multi_drone_process(configs):
-    print("Beginning procedural multidrone")
-    print("Using " + str(len(configs)) + " processes")
-    return run_processes(run_drone, configs)
-
-def multi_drone_batch(configs):
-    print("Beginning batched multidrone")
-    print("Using " + str(len(configs)) + " processes")
-    ps = []
-    for config in configs:
-        fn = str(uuid.uuid4())
-        with open("data/" + fn + ".ini", 'w') as configfile:
-            config.write(configfile)
-        ps.append(subprocess.Popen(["python3", "simple.py", fn]))
-    [p.wait() for p in ps]
-
-
-def single_drone(config):
-    print("Beginning without any multidrone")
-    return run_drone(config)
 
 if __name__ == "__main__":
     main()
