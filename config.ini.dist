@@ -4,7 +4,6 @@ port = 5555
 
 [main]
 num_drones = 15
-multi_drone = process
 
 [telemetry]
 battery_size = 1800
