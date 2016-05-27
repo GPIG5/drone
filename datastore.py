@@ -57,6 +57,29 @@ class Datastore:
     def set_search_space(self, space):
         self.grid_state = GridState(space, self.detection_radius)
 
+    def get_closest_unclaimed(self, position, timeout=0):
+        min_distance = (None, None)
+        for i, j in itertools.product(range(self.grid_state.x_count), range(self.grid_state.y_count)):
+            sector_state = self.grid_state.state_for((i, j))
+            sector_drone = self.grid_state.drone_of((i, j))
+            if sector_drone is not None:
+                sector_drone = self.drone_state[sector_drone]
+
+            if sector_state == SectorState.notSearched:
+                distance = self.grid_state.get_distance_to((i, j), position)
+                if min_distance[0] is None or min_distance[1] > distance:
+                    min_distance = ((i, j), distance)
+
+            # If the sector has been claimed by a drone the communications from who have ceased, then we would like to
+            # search this sector as well
+            elif timeout != 0 and sector_state == SectorState.being_searched and sector_drone is not None:
+                if sector_drone.last_seen < time.time() - timeout:
+                    distance = self.grid_state.get_distance_to((i, j), position)
+                    if min_distance[0] is None or min_distance[1] > distance:
+                        min_distance = ((i, j), distance)
+
+        return min_distance[0]
+
     @asyncio.coroutine
     def startup(self):
         yield from asyncio.gather(self.update_status(), self.update_grid_claim(), self.update_grid_complete())
@@ -73,13 +96,14 @@ class Datastore:
     def update_grid_claim(self):
         while True:
             msg = yield from self.messagedispatcher.wait_for_message("mesh", "claim")
-            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched)
+            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched, msg.uuid)
 
     @asyncio.coroutine
     def update_grid_complete(self):
         while True:
             msg = yield from self.messagedispatcher.wait_for_message("mesh", "complete")
-            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched)
+            self.grid_state.set_state_for(msg.sector_index, SectorState.searched)
+
 
 class SectorState(Enum):
     searched = 1
@@ -90,7 +114,7 @@ class SectorState(Enum):
 
 class GridState:
     def __init__(self, space, detection_radius):
-        detection_radius_multiplier = 15/6
+        detection_radius_multiplier = 15 / 6
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
         top_right = space.top_right
@@ -106,8 +130,8 @@ class GridState:
         map_height = bottom_left.distance_to(top_left)
         map_width = bottom_left.distance_to(bottom_right)
 
-        pre_sector_height = detection_radius*detection_radius_multiplier
-        pre_sector_width = detection_radius*detection_radius_multiplier
+        pre_sector_height = detection_radius * detection_radius_multiplier
+        pre_sector_width = detection_radius * detection_radius_multiplier
 
         self.y_count = int(map_height / pre_sector_height) + 1
         self.x_count = int(map_width / pre_sector_width) + 1
@@ -115,7 +139,7 @@ class GridState:
         self.sector_height = map_height / self.y_count
         self.sector_width = map_width / self.x_count
 
-        self.sector_state = {(i, j): [SectorState.notSearched, 0]
+        self.sector_state = {(i, j): [SectorState.notSearched, None]
                              for i, j in itertools.product(range(self.x_count), range(self.y_count))}
 
     # Checks whether the given position is within the sector
@@ -129,8 +153,9 @@ class GridState:
                position.longitude >= bottom_left.longitude and \
                position.longitude <= top_right.longitude
 
-    def set_state_for(self, sector_index, state):
+    def set_state_for(self, sector_index, state, drone_uuid=None):
         self.sector_state[sector_index][0] = state
+        self.sector_state[sector_index][1] = drone_uuid
 
     def state_for(self, sector_index):
         return self.sector_state[sector_index][0]
@@ -149,15 +174,6 @@ class GridState:
 
     def get_sector_origin(self, sector_index):
         return self.origin.point_at_xy_distance(sector_index[0] * self.sector_width, sector_index[1] * self.sector_height)
-
-    def get_closest_unclaimed(self, position):
-        min_distance = (None, None)
-        for i, j in itertools.product(range(self.x_count), range(self.y_count)):
-            if self.state_for((i, j)) == SectorState.notSearched:
-                distance = self.get_distance_to((i, j), position)
-                if min_distance[0] is None or min_distance[1] > distance:
-                    min_distance = ((i, j), distance)
-        return min_distance[0]
 
     def get_distance_to(self, sector_index, position):
         corners = self.get_sector_corners(sector_index)

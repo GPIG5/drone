@@ -123,7 +123,7 @@ class SectorController(Layer):
 
     def calculate_target(self):
         current_position = self.telemetry.get_location()
-        self.target_sector = self.grid_state.get_closest_unclaimed(current_position)
+        self.target_sector = self.data_store.get_closest_unclaimed(current_position, 10)
         if self.target_sector is not None:
             corners = self.grid_state.get_sector_corners(self.target_sector)
 
@@ -135,7 +135,8 @@ class SectorController(Layer):
             self.move_target = corners[0]
             print('Move Target: ' + str(self.move_target))
         else:
-            self.move_target = None
+            # If no more unclaimed targets exist, go back home
+            self.move_target = self.telemetry.get_initial_location()
 
     def move_to_target(self, current_output):
         if self.move_target is not None:
