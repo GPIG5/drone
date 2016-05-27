@@ -15,7 +15,7 @@ class Reactor:
         swc = SwarmController(secc.execute_layer, config["swarm"], data_store, telemetry)
         c2 = C2Reactor(swc.execute_layer, data_store, message_dispatcher, telemetry)
         pd = PersonDetector(c2.execute_layer)
-        bl = BatteryLifeChecker(pd.execute_layer, telemetry, config["DEFAULT"], communicator)
+        bl = BatteryLifeChecker(pd.execute_layer, telemetry, config["DEFAULT"], communicator, int(config['engine']['speed']))
         cd = CollisionDetector(bl.execute_layer, data_store, telemetry)
         self.entry = cd.execute_layer
         self.c2_reactor = c2

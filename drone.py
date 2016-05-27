@@ -140,8 +140,8 @@ def main():
             )]
         )
         nloc = (
-            loc[0] + (i * 0.001 * (random.uniform(0, 2) - 1)),
-            loc[1] + (i * 0.001 * (random.uniform(0, 2) - 1)),
+            loc[0] + (i * 0.0001 * (random.uniform(0, 2) - 1)),
+            loc[1] + (i * 0.0001 * (random.uniform(0, 2) - 1)),
             loc[2]
         )
         config["telemetry"]["start_location"] = str(nloc)
