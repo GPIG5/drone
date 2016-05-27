@@ -161,27 +161,9 @@ class SwarmController(Layer):
             else:
                 # If no neighbours in range, move towards the initial position
                 initial_position = self.telemetry.get_initial_location()
-                #
-                # home_vector = (
-                #     initial_position.latitude - current_position.latitude,
-                #     initial_position.longitude - current_position.longitude,
-                # )
-                #
-                # unit_vector = (
-                #     great_circle(meters=100).destination(current_position, 0).latitude - current_position.latitude,
-                #     great_circle(meters=100).destination(current_position, 0).longitude - current_position.longitude,
-                # )
-                #
-                # dot_product = home_vector[0] * unit_vector[0] + home_vector[1] * unit_vector[1]
-                # home_magnitude = math.sqrt(math.pow(home_vector[0], 2) + math.pow(home_vector[1], 2))
-                # unit_magnitude = math.sqrt(math.pow(unit_vector[0], 2) + math.pow(unit_vector[1], 2))
-                #
-                # cos_angle = dot_product / (home_magnitude*unit_magnitude)
-                # angle = math.degrees(math.acos(cos_angle))
+                bearing_to_initial = current_position.bearing_to_point(initial_position)
 
-                # self.target = great_circle(self.radio_radius/4).destination(current_position, angle)
-                # self.target.altitude = initial_position.altitude
-                self.target = initial_position
+                self.target = current_position.point_at_vector(self.radio_radius/2, bearing_to_initial)
 
             print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
                   "CURRENT POSITION: " + str(current_position) +
