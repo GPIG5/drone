@@ -60,7 +60,7 @@ class SwarmController(Layer):
         elif self.state == State.avoidance:
             # If avoidance complete return to normal; otherwise continue with avoidance
             if self.avoidance_complete():
-                print("AVOIDANCE COMPLETE")
+                # print("AVOIDANCE COMPLETE")
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
@@ -83,7 +83,7 @@ class SwarmController(Layer):
     def perform_avoidance(self, current_output):
 
         if self.state != State.avoidance:
-            print("AVOIDANCE INITIATED")
+            # print("AVOIDANCE INITIATED")
 
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
@@ -106,12 +106,12 @@ class SwarmController(Layer):
 
             # If the avoidance target is too close we instead move to a random direction
             if distance_to_avoidance_target < 5:
-                print('CRITICAL AVOIDANCE DETECTED')
+                # print('CRITICAL AVOIDANCE DETECTED')
                 self.target = great_circle(meters=self.critical_avoidance_range).destination(current_position, random.uniform(0,360))
 
-            print("AVOIDANCE TARGET: " + str(self.target) +
-                  "CURRENT POSITION: " + str(current_position) +
-                  "DISTANCE: " + str(distance_to_avoidance_target))
+            # print("AVOIDANCE TARGET: " + str(self.target) +
+            #       "CURRENT POSITION: " + str(current_position) +
+            #       "DISTANCE: " + str(distance_to_avoidance_target))
 
         self.aggregation_timer = time.time()
         current_output.move = self.target
@@ -142,10 +142,11 @@ class SwarmController(Layer):
             return False
 
     def perform_coherence(self, current_output):
-        if self.state != State.coherence:
+        if self.state != State.coherence or self.coherence_needed():
             # If coherence was just initiated, we need to calculate which way to avoid to
             self.state = State.coherence
 
+        if self.coherence_needed():
             current_position = self.telemetry.get_location()
             center_of_mass = self.compute_neighbour_mass_center()
 
@@ -161,31 +162,18 @@ class SwarmController(Layer):
             else:
                 # If no neighbours in range, move towards the initial position
                 initial_position = self.telemetry.get_initial_location()
-                #
-                # home_vector = (
-                #     initial_position.latitude - current_position.latitude,
-                #     initial_position.longitude - current_position.longitude,
-                # )
-                #
-                # unit_vector = (
-                #     great_circle(meters=100).destination(current_position, 0).latitude - current_position.latitude,
-                #     great_circle(meters=100).destination(current_position, 0).longitude - current_position.longitude,
-                # )
-                #
-                # dot_product = home_vector[0] * unit_vector[0] + home_vector[1] * unit_vector[1]
-                # home_magnitude = math.sqrt(math.pow(home_vector[0], 2) + math.pow(home_vector[1], 2))
-                # unit_magnitude = math.sqrt(math.pow(unit_vector[0], 2) + math.pow(unit_vector[1], 2))
-                #
-                # cos_angle = dot_product / (home_magnitude*unit_magnitude)
-                # angle = math.degrees(math.acos(cos_angle))
+                bearing_to_initial = current_position.bearing_to_point(initial_position)
 
-                # self.target = great_circle(self.radio_radius/4).destination(current_position, angle)
-                # self.target.altitude = initial_position.altitude
-                self.target = initial_position
+                towards_home = current_position.point_at_vector(self.radio_radius/2, bearing_to_initial)
 
-            print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
-                  "CURRENT POSITION: " + str(current_position) +
-                  "DISTANCE: " + str(self.target.distance_to(current_position)))
+                if towards_home.distance_to(initial_position) > current_position.distance_to(initial_position):
+                    self.target = initial_position
+                else:
+                    self.target = towards_home
+
+            # print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
+            #       "CURRENT POSITION: " + str(current_position) +
+            #       "DISTANCE: " + str(self.target.distance_to(current_position)))
 
         current_output.move = self.target
         return current_output

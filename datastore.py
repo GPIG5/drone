@@ -14,6 +14,9 @@ class Drone:
         self.location = location
         self.last_seen = last_seen
 
+    def __str__(self, *args, **kwargs):
+        return str(self.uuid) + " b:" + str(self.battery) + " l:" + str(self.location) + " t:" + str(self.last_seen)
+
 
 class Datastore:
     def __init__(self, config, messagedispatcher):
@@ -63,6 +66,8 @@ class Datastore:
             sector_state = self.grid_state.state_for((i, j))
             sector_drone = self.grid_state.drone_of((i, j))
             if sector_drone is not None:
+                # print("STATE OF OTHER DRONES:")
+                # print(str(self.drone_state))
                 sector_drone = self.drone_state[sector_drone]
 
             if sector_state == SectorState.notSearched:
@@ -96,7 +101,7 @@ class Datastore:
     def update_grid_claim(self):
         while True:
             msg = yield from self.messagedispatcher.wait_for_message("mesh", "claim")
-            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched, msg.uuid)
+            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched, msg.origin)
 
     @asyncio.coroutine
     def update_grid_complete(self):
