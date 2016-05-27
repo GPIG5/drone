@@ -139,7 +139,7 @@ class GridState:
         self.sector_height = map_height / self.y_count
         self.sector_width = map_width / self.x_count
 
-        self.sector_state = {(i, j): [SectorState.notSearched, 0]
+        self.sector_state = {(i, j): [SectorState.notSearched, None]
                              for i, j in itertools.product(range(self.x_count), range(self.y_count))}
 
     # Checks whether the given position is within the sector

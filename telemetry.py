@@ -16,8 +16,8 @@ class Telemetry:
         self.uuid = config.get('uuid')
         self.real_battery_size = config.getfloat('battery_size')
         self.battery_size = self.real_battery_size
-        self.initial_location = Point(*make_tuple(config.get('start_location')))
-        self.location = self.initial_location
+        self.initial_location = Point(*make_tuple(config.get('c2_location')))
+        self.location = Point(*make_tuple(config.get('start_location')))
         self.location_lock = asyncio.Lock()
         self.start_time = 0
         self.travel_time = travel_time
