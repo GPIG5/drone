@@ -135,7 +135,8 @@ class SectorController(Layer):
             self.move_target = corners[0]
             print('Move Target: ' + str(self.move_target))
         else:
-            self.move_target = None
+            # If no more unclaimed targets exist, go back home
+            self.move_target = self.telemetry.get_initial_location()
 
     def move_to_target(self, current_output):
         if self.move_target is not None:
