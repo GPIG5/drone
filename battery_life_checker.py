@@ -14,6 +14,7 @@ class BatteryLifeChecker(Layer):
     def execute_layer(self, current_output):
         op = current_output
         if self.telemetry.get_battery() < (self.telemetry.get_initial_battery() / 2) + 240:
+            print("LOW BATTERY")
             if self.telemetry.get_location().distance_to(
                 self.telemetry.get_initial_location()
             ) < 10:

@@ -132,7 +132,7 @@ class SwarmController(Layer):
             center_of_mass = self.compute_neighbour_mass_center()
             if center_of_mass is not None:
                 distance_to_mass = center_of_mass.distance_to(current_position)
-                if distance_to_mass < self.radio_radius/2:
+                if distance_to_mass < self.radio_radius*0.75:
                     self.aggregation_timer = time.time()
                 else:
                     return True
