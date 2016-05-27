@@ -1,4 +1,5 @@
 import geopy
+import math
 from geopy.distance import great_circle
 
 class Point(geopy.point.Point):
