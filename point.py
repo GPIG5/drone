@@ -1,4 +1,5 @@
 import geopy
+import math
 from geopy.distance import great_circle
 
 class Point(geopy.point.Point):
@@ -30,6 +31,21 @@ class Point(geopy.point.Point):
             latitude = self.latitude + scale * (p2.longitude - self.longitude),
             altitude = self.altitude
         )
+
+    def bearing_to_point(self, target_location):
+        # algorithm from https://gist.github.com/jeromer/2005586
+
+        lat1 = math.radians(self.latitude)
+        lat2 = math.radians(target_location.latitude)
+        diffLong = math.radians(target_location.longitude - self.longitude)
+
+        x = math.sin(diffLong) * math.cos(lat2)
+        y = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1) * math.cos(lat2) * math.cos(diffLong))
+
+        initial_bearing = math.atan2(x, y)
+        initial_bearing = math.degrees(initial_bearing)
+        bearing = (initial_bearing + 360) % 360
+        return bearing
 
     def point_at_vector(self, distance, bearing):
         if distance == 0:

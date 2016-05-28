@@ -1,6 +1,9 @@
 import random
 import time
 from enum import Enum
+
+import math
+
 from layer import *
 from geopy.distance import great_circle
 
@@ -57,7 +60,7 @@ class SwarmController(Layer):
         elif self.state == State.avoidance:
             # If avoidance complete return to normal; otherwise continue with avoidance
             if self.avoidance_complete():
-                print("AVOIDANCE COMPLETE")
+                # print("AVOIDANCE COMPLETE")
                 self.aggregation_timer = time.time()
                 return self.perform_normal(current_output)
             else:
@@ -80,7 +83,7 @@ class SwarmController(Layer):
     def perform_avoidance(self, current_output):
 
         if self.state != State.avoidance:
-            print("AVOIDANCE INITIATED")
+            # print("AVOIDANCE INITIATED")
 
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
@@ -103,12 +106,12 @@ class SwarmController(Layer):
 
             # If the avoidance target is too close we instead move to a random direction
             if distance_to_avoidance_target < 5:
-                print('CRITICAL AVOIDANCE DETECTED')
+                # print('CRITICAL AVOIDANCE DETECTED')
                 self.target = great_circle(meters=self.critical_avoidance_range).destination(current_position, random.uniform(0,360))
 
-            print("AVOIDANCE TARGET: " + str(self.target) +
-                  "CURRENT POSITION: " + str(current_position) +
-                  "DISTANCE: " + str(distance_to_avoidance_target))
+            # print("AVOIDANCE TARGET: " + str(self.target) +
+            #       "CURRENT POSITION: " + str(current_position) +
+            #       "DISTANCE: " + str(distance_to_avoidance_target))
 
         self.aggregation_timer = time.time()
         current_output.move = self.target
@@ -127,34 +130,50 @@ class SwarmController(Layer):
         if time.time() - self.aggregation_timer > self.aggregation_timeout:
             current_position = self.telemetry.get_location()
             center_of_mass = self.compute_neighbour_mass_center()
-            distance_to_mass = center_of_mass.distance_to(current_position)
-            if distance_to_mass < self.radio_radius/2:
-                self.aggregation_timer = time.time()
+            if center_of_mass is not None:
+                distance_to_mass = center_of_mass.distance_to(current_position)
+                if distance_to_mass < self.radio_radius*0.75:
+                    self.aggregation_timer = time.time()
+                else:
+                    return True
             else:
                 return True
         else:
             return False
 
     def perform_coherence(self, current_output):
-        if self.state != State.coherence:
+        if self.state != State.coherence or self.coherence_needed():
             # If coherence was just initiated, we need to calculate which way to avoid to
             self.state = State.coherence
 
+        if self.coherence_needed():
             current_position = self.telemetry.get_location()
             center_of_mass = self.compute_neighbour_mass_center()
 
-            # We move only partially towards the center of mass
-            self.target = Point(
-                latitude=current_position.latitude +
-                         (center_of_mass.latitude - current_position.latitude) * self.cohesion_degree,
-                longitude=current_position.longitude +
-                          (center_of_mass.longitude - current_position.longitude) * self.cohesion_degree,
-                altitude=current_position.altitude +
-                         (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
+            if center_of_mass is not None:
+                # We move only partially towards the center of mass
+                self.target = Point(
+                    latitude=current_position.latitude +
+                             (center_of_mass.latitude - current_position.latitude) * self.cohesion_degree,
+                    longitude=current_position.longitude +
+                              (center_of_mass.longitude - current_position.longitude) * self.cohesion_degree,
+                    altitude=current_position.altitude +
+                             (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
+            else:
+                # If no neighbours in range, move towards the initial position
+                initial_position = self.telemetry.get_initial_location()
+                bearing_to_initial = current_position.bearing_to_point(initial_position)
 
-            print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
-                  "CURRENT POSITION: " + str(current_position) +
-                  "DISTANCE: " + str(self.target.distance_to(current_position)))
+                towards_home = current_position.point_at_vector(self.radio_radius/2, bearing_to_initial)
+
+                if towards_home.distance_to(initial_position) > current_position.distance_to(initial_position):
+                    self.target = initial_position
+                else:
+                    self.target = towards_home
+
+            # print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
+            #       "CURRENT POSITION: " + str(current_position) +
+            #       "DISTANCE: " + str(self.target.distance_to(current_position)))
 
         current_output.move = self.target
         return current_output
@@ -181,7 +200,7 @@ class SwarmController(Layer):
                 longitude=total_longitude / totalmass,
                 altitude=total_altitude / totalmass)
         else:
-            return current_position
+            return None
 
     def coherence_complete(self):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
