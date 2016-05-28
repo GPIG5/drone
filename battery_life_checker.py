@@ -40,14 +40,15 @@ class BatteryLifeChecker(Layer):
         if self.state == State.going_home:
             if current_location.distance_to(init_loc) < 10:
                 b1 = io.BytesIO()
-                # b2 = io.StringIO()
-                tar = tarfile.open(mode = "w|", fileobj=b1)
+                b2 = io.StringIO()
+                tar = tarfile.open(mode="w|", fileobj=b1)
                 tar.add("data/" + self.config["uuid"])
                 tar.close()
                 b64_encoded = base64.b64encode(b1.getvalue())
-                self.communicator.send_message(UploadDirect(self.config["uuid"], b64_encoded))
+                op.send_data = str(b64_encoded)
                 self.telemetry.recharge_battery()
-                self.state == State.normal
+                self.state = State.normal
+                # print(str(self.state))
             else:
                 op.move = self.telemetry.get_initial_location()
 
