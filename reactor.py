@@ -8,6 +8,7 @@ from sector_controller import SectorController
 from swarm_controller import SwarmController
 from fault_detector import FaultDetector
 from image_uploader import ImageUploader
+import asyncio
 
 id = lambda x: x
 
@@ -65,7 +66,7 @@ class Reactor:
                 args[d] = modules[d]
             args['next'] = next
             if 'config' in layer:
-                args['config'] = config[layer['config']]
+                args['config'] = config
             obj = layer['class'](**args)
             next = obj.execute_layer
             self.layers[layer['name']] = obj

@@ -31,12 +31,13 @@ class Engine:
     @asyncio.coroutine
     def startup(self):
         while True:
+            print("running engine")
             target_location = self.get_current_target()
             if target_location is None:
-                continue
+                raise "none target location"
             current_location = self.get_location()
             target_distance = great_circle(current_location, target_location).meters
-            travel_distance = self.speed * self.travel_time
+            travel_distance = self.speed * self.get_travel_time()
             travel_distance = target_distance if target_distance < travel_distance else travel_distance
 
             if (target_distance != 0):
@@ -49,6 +50,6 @@ class Engine:
                 # print('Location: ' + str(current_location) + ' Bearing: ' + str(bearing))
                 # print('Destination: ' + str(travel_destination) + ' Target: ' + str(target_location))
 
-                yield from self.set_location(Point(travel_destination))
+                self.set_location(Point(travel_destination))
 
-            yield from asyncio.sleep(self.travel_time)
+            yield from asyncio.sleep(self.get_travel_time())

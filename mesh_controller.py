@@ -11,6 +11,7 @@ class MeshController:
     @asyncio.coroutine
     def startup(self):
         while True:
+            print("running mesh controller")
             msg = yield from self.message_dispatcher.get_mesh_message()
             if msg.uuid == self.uuid or msg.origin == self.uuid:
                 continue

@@ -1,4 +1,5 @@
 from layer import *
+import asyncio
 
 class FaultDetector(Layer):
     def __init__(self, next):
@@ -12,4 +13,4 @@ class FaultDetector(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
-            asyncio.sleep(4)
+            yield from asyncio.sleep(4)

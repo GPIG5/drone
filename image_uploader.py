@@ -18,7 +18,8 @@ class ImageUploader(Layer):
         self.telemetry = telemetry
         self.detection = detection
         self.communicator = communicator
-        self.last_upload_time = telemetry.get_start_time()
+        self.last_upload_time = self.telemetry.get_start_time()
+        self.state = State.normal
 
     def execute_layer(self, current_output):
         op = current_output
@@ -48,6 +49,7 @@ class ImageUploader(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
+            print("running image uploader")
             if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
                 if (time.time() - self.last_upload_time) > 300:
                     self.state = State.uploading
@@ -59,4 +61,4 @@ class ImageUploader(Layer):
                     ))
                     self.state = State.normal
                     print("FINISHED UPLOADING")
-            asyncio.sleep(1)
+            yield from asyncio.sleep(1)

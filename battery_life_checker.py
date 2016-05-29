@@ -34,10 +34,12 @@ class BatteryLifeChecker(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
+            print("running battery life checker")
             if (self.telemetry.get_initial_battery() / 2) + 150 > self.telemetry.get_battery():
                 self.state = State.going_home
                 print("LOW BATTERY")
             if self.state == State.going_home:
+                print("at home")
                 if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
                     #wait ten seconds for battery replacement
                     print("REPLACING BATTERY")
@@ -45,4 +47,4 @@ class BatteryLifeChecker(Layer):
                     self.telemetry.recharge_battery()
                     self.state = State.normal
                     print("BATTERY REPLACED")
-            asyncio.sleep(1)
+            yield from asyncio.sleep(1)

@@ -96,13 +96,9 @@ class Drone:
             raise KeyError('Key: ' + key + ' not found in configuration.')
 
     @asyncio.coroutine
-    def startup(self):
-        return
-
-    @asyncio.coroutine
     def run(self):
         inittasks = []
-        for k, m in self.modules:
+        for k, m in self.modules.items():
             try:
                 inittasks.append(m.initialise())
             except AttributeError:
@@ -112,7 +108,7 @@ class Drone:
             *inittasks
         )
         startuptasks = []
-        for k, m in self.modules:
+        for k, m in self.modules.items():
             try:
                 startuptasks.append(m.startup())
             except AttributeError:

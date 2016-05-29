@@ -24,6 +24,7 @@ class C2Reactor(Layer):
     @asyncio.coroutine
     def returnjob(self):
         while True:
+            print("running return checker")
             msg = yield from self.message_dispatcher.wait_for_message("mesh", "return")
             if self.ts < msg.timestamp:
                 self.returning = True
@@ -31,6 +32,7 @@ class C2Reactor(Layer):
     @asyncio.coroutine
     def deployjob(self):
         while True:
+            print("running deploy checker")
             msg = yield from self.message_dispatcher.wait_for_message("mesh", "deploy")
             if self.ts < msg.timestamp:
                 self.returning = False

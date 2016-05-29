@@ -4,6 +4,7 @@ import asyncio
 from messages import StatusDirect, StatusMesh
 from point import Point
 import random
+import time
 
 
 class Telemetry:
@@ -18,9 +19,10 @@ class Telemetry:
         self.battery_size = self.real_battery_size
         self.initial_location = Point(*make_tuple(config.get('c2_location')))
         self.engine = engine
-        self.engine.set_location(Point(*make_tuple(config.get('start_location'))))
         self.location_lock = asyncio.Lock()
-        self.start_time = 0
+        self.start_time = time.time()
+        self.start_location = Point(*make_tuple(config.get('start_location')))
+        self.engine.set_location(self.start_location)
 
     @asyncio.coroutine
     def initialise(self):
@@ -29,6 +31,7 @@ class Telemetry:
     @asyncio.coroutine
     def startup(self):
         while True:
+            print("running telemetry")
             if self.leaky_battery:
                 if random.randint(0, 100) < 2:
                     self.battery_size = self.battery_size / 2
@@ -43,19 +46,16 @@ class Telemetry:
 
             yield from self.communicator.send(env_status.to_json())
             yield from self.communicator.send(mesh_status.to_json())
-
-            yield from asyncio.sleep(self.engine.get_travel_time)
+            yield from asyncio.sleep(self.engine.get_travel_time())
 
     def get_location(self):
-        return self.engine.get_location
+        return self.engine.get_location()
 
-    @asyncio.coroutine
     def set_location(self, new_location: Point):
-        with (yield from self.location_lock):
-            if new_location is None:
-                raise "lol"
-            if (self.get_battery() > 0):
-                self.engine.set_location(new_location)
+        if new_location is None:
+            raise "lol"
+        if (self.get_battery() > 0):
+            self.engine.set_location(new_location)
 
     def get_initial_battery(self):
         return self.battery_size

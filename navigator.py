@@ -11,6 +11,7 @@ class Navigator:
         self.data_store = data_store
         self.communicator = communicator
         self.engine = engine
+        self.telemetry = telemetry
         self.reactor = Reactor(
             config=config,
             data_store=data_store,
@@ -20,22 +21,25 @@ class Navigator:
             **kwargs
         )
         self.engine.set_current_target(Point(
-            latitude = telemetry.get_location().latitude,
-            longitude = telemetry.get_location().longitude,
-            altitude = telemetry.get_location().altitude
+            latitude = self.telemetry.get_location().latitude,
+            longitude = self.telemetry.get_location().longitude,
+            altitude = self.telemetry.get_location().altitude
         ))
+
 
     @asyncio.coroutine
     def startup(self):
-        return (yield from asyncio.gather(self.reactor.startup(), self.navstartup()))
+        yield from asyncio.gather(self.reactor.startup(), self.navstartup())
     @asyncio.coroutine
     def initialise(self):
-        return (yield from self.reactor.initialise())
+        yield from self.reactor.initialise()
 
     @asyncio.coroutine
     def navstartup(self):
         while True:
+            print("running navigator")
             action = self.reactor.run()
+            print("running navigator - reactor ended")
             if action is not None:
                 if action.has_move():
                     self.set_current_target(action.move)
