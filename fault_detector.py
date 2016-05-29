@@ -39,6 +39,7 @@ class FaultDetector(Layer):
             cbattery_id = self.telemetry.get_battery_id()
             if last_battery_id != cbattery_id:
                 self.state = State.normal
+                print("BATTERY FAULT REMOVED")
                 continue
             pchange = ((math.fabs((ctime - last_time) - (cbattery - last_battery)) / 20) - 1) * 100
             if pchange > 10:
