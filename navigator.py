@@ -37,9 +37,7 @@ class Navigator:
     @asyncio.coroutine
     def navstartup(self):
         while True:
-            print("running navigator")
             action = self.reactor.run()
-            print("running navigator - reactor ended")
             if action is not None:
                 if action.has_move():
                     self.set_current_target(action.move)

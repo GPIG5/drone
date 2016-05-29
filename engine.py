@@ -35,7 +35,6 @@ class Engine:
     @asyncio.coroutine
     def startup(self):
         while True:
-            print("running engine")
             target_location = self.get_current_target()
             if target_location is None:
                 raise "none target location"

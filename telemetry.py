@@ -23,6 +23,7 @@ class Telemetry:
         self.start_time = time.time()
         self.start_location = Point(*make_tuple(config.get('start_location')))
         self.engine.set_location(self.start_location)
+        self.battery_id = 0
 
     @asyncio.coroutine
     def initialise(self):
@@ -31,7 +32,6 @@ class Telemetry:
     @asyncio.coroutine
     def startup(self):
         while True:
-            print("running telemetry")
             if self.leaky_battery:
                 if random.randint(0, 100) < 2:
                     self.battery_size = self.battery_size / 2
@@ -66,6 +66,9 @@ class Telemetry:
     def get_initial_location(self):
         return self.initial_location
 
+    def get_battery_id(self):
+        return self.battery_id
+
     def get_battery(self):
         current_time = asyncio.get_event_loop().time()
         elapsed_time = current_time - self.start_time
@@ -75,3 +78,5 @@ class Telemetry:
     def recharge_battery(self):
         self.start_time = asyncio.get_event_loop().time()
         self.battery_size = self.real_battery_size
+        self.leaky_battery = False
+        self.battery_id = self.battery_id + 1

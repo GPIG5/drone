@@ -44,7 +44,7 @@ class Reactor:
             },
             {
                 'name': 'fault_detector',
-                'dependencies': [],
+                'dependencies': ['telemetry'],
                 'class': FaultDetector
             },
             {

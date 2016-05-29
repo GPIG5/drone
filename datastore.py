@@ -92,7 +92,6 @@ class Datastore:
     @asyncio.coroutine
     def update_status(self):
         while True:
-            print("running datastore update status")
             st = yield from self.message_dispatcher.wait_for_message("mesh", "status")
             d = Drone(st.origin, st.battery, st.location, st.timestamp)
             self.drone_state[d.uuid] = d
@@ -101,14 +100,12 @@ class Datastore:
     @asyncio.coroutine
     def update_grid_claim(self):
         while True:
-            print("running datastore update grid claim")
             msg = yield from self.message_dispatcher.wait_for_message("mesh", "claim")
             self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched, msg.origin)
 
     @asyncio.coroutine
     def update_grid_complete(self):
         while True:
-            print("running datastore update grid complete")
             msg = yield from self.message_dispatcher.wait_for_message("mesh", "complete")
             self.grid_state.set_state_for(msg.sector_index, SectorState.searched)
 

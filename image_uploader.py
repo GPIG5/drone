@@ -49,9 +49,8 @@ class ImageUploader(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
-            print("running image uploader")
             if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
-                if (time.time() - self.last_upload_time) > 300:
+                if (time.time() - self.last_upload_time) > 600:
                     self.state = State.uploading
                     print("UPLOADING")
                     op = yield from self.readfiles(self.detection.get_data_folder())

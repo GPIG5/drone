@@ -34,7 +34,6 @@ class BatteryLifeChecker(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
-            print("running battery life checker")
             if (self.telemetry.get_initial_battery() / 2) + 150 > self.telemetry.get_battery():
                 self.state = State.going_home
                 print("LOW BATTERY")
