@@ -14,12 +14,16 @@ class Engine:
         return self.speed
 
     def get_current_target(self):
+        if self.current_target is None:
+            raise "test"
         return self.current_target
 
     def set_current_target(self, ct):
         self.current_target = ct
 
     def get_location(self):
+        if self.location is None:
+            raise "test"
         return self.location
 
     def set_location(self, ct):
