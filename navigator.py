@@ -1,7 +1,7 @@
 import asyncio
 
 import datastore
-from messages import ClaimMesh, CompleteMesh
+from messages import ClaimMesh, CompleteMesh, UploadDirect
 from point import Point
 from reactor import Reactor
 
@@ -36,6 +36,8 @@ class Navigator:
                     grid.set_state_for(action.complete_sector, datastore.SectorState.searched)
                     msg = CompleteMesh(self.uuid, self.uuid, action.complete_sector, grid.get_sector_space(action.complete_sector))
                     yield from self.communicator.send_message(msg)
+                if action.has_send_data():
+                    yield from self.communicator.send_message(UploadDirect(self.uuid, action.send_data))
 
             yield from asyncio.sleep(1)
 
