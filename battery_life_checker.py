@@ -45,10 +45,9 @@ class BatteryLifeChecker(Layer):
                 tar.add("data/" + self.config["uuid"])
                 tar.close()
                 b64_encoded = base64.b64encode(b1.getvalue())
-                op.send_data = str(b64_encoded)
+                op.send_data = b64_encoded.decode("ascii")
                 self.telemetry.recharge_battery()
                 self.state = State.normal
-                # print(str(self.state))
             else:
                 op.move = self.telemetry.get_initial_location()
 
