@@ -33,15 +33,56 @@ class Drone:
         self.config = config
         config.set('DEFAULT', 'uuid', str(self.uuid))
 
-        self.communicator = Communicator(self.config["communicator"])
-        self.messagedispatcher = Messagedispatcher(self.communicator)
-        self.telemetry = Telemetry(self.config['telemetry'], self.communicator, self.config['defects'], int(self.config['engine']['travel_time']))
-        self.datastore = Datastore(self.config['swarm'], self.messagedispatcher)
-        self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
-        self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher, self.communicator)
-        self.c2_reactor = self.navigator.c2_reactor
-        self.mesh_controller = MeshController(self.config['DEFAULT'], self.messagedispatcher, self.communicator)
-        self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
+        module_classes = [
+            {
+                'name': 'communicator',
+                'class': Communicator
+            },
+            {
+                'name': 'message_dispatcher',
+                'class': Messagedispatcher
+            },
+            {
+                'name': 'engine',
+                'class': Engine
+            },
+            {
+                'name': 'telemetry',
+                'class': Telemetry
+            },
+            {
+                'name': 'data_store',
+                'class': Datastore
+            },
+            {
+                'name': 'detection',
+                'class': Detection
+            },
+            {
+                'name': 'navigator',
+                'class': Navigator
+            },
+            {
+                'name': 'mesh_controller',
+                'class': MeshController
+            }
+        ]
+
+        modules = {}
+        for mc in module_classes:
+            obj = mc['class'](config = config[mc['name']], **modules)
+            modules[mc['name']] = obj
+        self.modules = modules
+
+
+        #self.communicator = Communicator(self.config["communicator"])
+        #self.messagedispatcher = Messagedispatcher(self.communicator)
+        #self.telemetry = Telemetry(self.config['telemetry'], self.communicator, self.config['defects'], int(self.config['engine']['travel_time']))
+        #self.datastore = Datastore(self.config['swarm'], self.messagedispatcher)
+        #self.detection = Detection(self.config['detection'], self.communicator, self.messagedispatcher)
+        #self.navigator = Navigator(self.config, self.datastore, self.telemetry, self.messagedispatcher, self.communicator)
+        #self.mesh_controller = MeshController(self.config['DEFAULT'], self.messagedispatcher, self.communicator)
+        #self.engine = Engine(self.config['engine'], self.telemetry, self.navigator)
 
     def getUUID(self):
         return str(self.uuid)
@@ -60,29 +101,25 @@ class Drone:
 
     @asyncio.coroutine
     def run(self):
-        inittasks = [
-            self.communicator,
-            self.telemetry,
-            self.detection
-        ]
+        inittasks = []
+        for k, m in self.modules:
+            try:
+                inittasks.append(m.initialise())
+            except AttributeError:
+                pass
         print("starting init tasks")
         yield from asyncio.gather(
-            *[x.initialise() for x in inittasks]
+            *inittasks
         )
-        tasks = [
-            self,
-            self.datastore,
-            self.detection,
-            self.messagedispatcher,
-            self.navigator,
-            self.telemetry,
-            self.mesh_controller,
-            self.engine,
-            self.c2_reactor
-        ]
+        startuptasks = []
+        for k, m in self.modules:
+            try:
+                startuptasks.append(m.startup())
+            except AttributeError:
+                pass
         print("starting main tasks")
         yield from asyncio.gather(
-            *[x.startup() for x in tasks]
+            *startuptasks
         )
 
 @asyncio.coroutine

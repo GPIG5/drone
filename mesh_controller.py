@@ -2,12 +2,12 @@ import asyncio
 import bisect
 
 class MeshController:
-    def __init__(self, config, message_dispatcher, communicator, max_messages = 3):
+    def __init__(self, config, message_dispatcher, communicator, **kwargs):
         self.message_dispatcher = message_dispatcher
         self.uuid = config.get('uuid')
         self.origin_map = {}
         self.communicator = communicator
-        self.max_messages = max_messages
+        self.max_messages = int(config.get('max_messages'))
     @asyncio.coroutine
     def startup(self):
         while True:

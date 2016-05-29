@@ -5,7 +5,7 @@ import struct
 from messages import DirectMessage
 
 class Communicator:
-    def __init__(self, config):
+    def __init__(self, config, **kwargs):
         self.host = config.get('host')
         self.port = config.getint('port')
         self.uuid = config.get('uuid')

@@ -7,9 +7,9 @@ import random
 
 
 class Telemetry:
-    def __init__(self, config, communicator, defects, travel_time):
+    def __init__(self, config, communicator, engine, **kwargs):
         self.communicator = communicator
-        self.leaky_battery = ('True' == defects['leaky_battery'])
+        self.leaky_battery = ('True' == config['leaky_battery'])
         if self.leaky_battery:
             print("The battery is set to leak")
 
@@ -17,10 +17,10 @@ class Telemetry:
         self.real_battery_size = config.getfloat('battery_size')
         self.battery_size = self.real_battery_size
         self.initial_location = Point(*make_tuple(config.get('c2_location')))
-        self.location = Point(*make_tuple(config.get('start_location')))
+        self.engine = engine
+        self.engine.set_location(Point(*make_tuple(config.get('start_location'))))
         self.location_lock = asyncio.Lock()
         self.start_time = 0
-        self.travel_time = travel_time
 
     @asyncio.coroutine
     def initialise(self):
@@ -44,10 +44,10 @@ class Telemetry:
             yield from self.communicator.send(env_status.to_json())
             yield from self.communicator.send(mesh_status.to_json())
 
-            yield from asyncio.sleep(self.travel_time)
+            yield from asyncio.sleep(self.engine.get_travel_time)
 
     def get_location(self):
-        return self.location
+        return self.engine.get_location
 
     @asyncio.coroutine
     def set_location(self, new_location: Point):
@@ -55,10 +55,13 @@ class Telemetry:
             if new_location is None:
                 raise "lol"
             if (self.get_battery() > 0):
-                self.location = new_location
+                self.engine.set_location(new_location)
 
     def get_initial_battery(self):
         return self.battery_size
+
+    def get_start_time(self):
+        return self.start_time
 
     def get_initial_location(self):
         return self.initial_location

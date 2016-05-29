@@ -6,26 +6,39 @@ from point import Point
 from reactor import Reactor
 
 class Navigator:
-    def __init__(self, config, data_store, telemetry, messagedispatcher, communicator):
-        self.uuid = config.get('DEFAULT', 'uuid')
+    def __init__(self, config, data_store, telemetry, communicator, engine, **kwargs):
+        self.uuid = config['uuid']
         self.data_store = data_store
-        self.messagedispatcher = messagedispatcher
         self.communicator = communicator
-        self.reactor = Reactor(config, data_store, telemetry, messagedispatcher, communicator)
-        self.current_target = Point(
+        self.engine = engine
+        self.reactor = Reactor(
+            config=config,
+            data_store=data_store,
+            telemetry=telemetry,
+            communicator=communicator,
+            engine=engine,
+            **kwargs
+        )
+        self.engine.set_current_target(Point(
             latitude = telemetry.get_location().latitude,
             longitude = telemetry.get_location().longitude,
             altitude = telemetry.get_location().altitude
-        )
-        self.c2_reactor = self.reactor.c2_reactor
+        ))
 
     @asyncio.coroutine
     def startup(self):
+        return (yield from asyncio.gather(self.reactor.startup(), self.navstartup()))
+    @asyncio.coroutine
+    def initialise(self):
+        return (yield from self.reactor.initialise())
+
+    @asyncio.coroutine
+    def navstartup(self):
         while True:
             action = self.reactor.run()
             if action is not None:
                 if action.has_move():
-                    self.current_target = action.move
+                    self.set_current_target(action.move)
                 if action.has_claim_sector():
                     grid = self.data_store.get_grid_state()
                     grid.set_state_for(action.claim_sector, datastore.SectorState.being_searched)
@@ -42,4 +55,7 @@ class Navigator:
             yield from asyncio.sleep(1)
 
     def get_current_target(self):
-        return self.current_target
+        return self.engine.get_current_target()
+
+    def set_current_target(self, ct):
+        return self.engine.set_current_target(ct)

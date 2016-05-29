@@ -19,8 +19,8 @@ class Drone:
 
 
 class Datastore:
-    def __init__(self, config, messagedispatcher):
-        self.messagedispatcher = messagedispatcher
+    def __init__(self, config, message_dispatcher, **kwargs):
+        self.message_dispatcher = message_dispatcher
         self.drone_state = {}
         self.detection_radius = config.getfloat('detection_radius')
         self.grid_state = None
@@ -92,7 +92,7 @@ class Datastore:
     @asyncio.coroutine
     def update_status(self):
         while True:
-            st = yield from self.messagedispatcher.wait_for_message("mesh", "status")
+            st = yield from self.message_dispatcher.wait_for_message("mesh", "status")
             d = Drone(st.origin, st.battery, st.location, st.timestamp)
             self.drone_state[d.uuid] = d
             # print("got message from: " + d.uuid)
@@ -100,13 +100,13 @@ class Datastore:
     @asyncio.coroutine
     def update_grid_claim(self):
         while True:
-            msg = yield from self.messagedispatcher.wait_for_message("mesh", "claim")
+            msg = yield from self.message_dispatcher.wait_for_message("mesh", "claim")
             self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched, msg.origin)
 
     @asyncio.coroutine
     def update_grid_complete(self):
         while True:
-            msg = yield from self.messagedispatcher.wait_for_message("mesh", "complete")
+            msg = yield from self.message_dispatcher.wait_for_message("mesh", "complete")
             self.grid_state.set_state_for(msg.sector_index, SectorState.searched)
 
 
