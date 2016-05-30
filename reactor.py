@@ -50,6 +50,7 @@ class Reactor:
             {
                 'name': 'battery_life_checker',
                 'dependencies': ['telemetry', 'communicator', 'engine'],
+                'config': 'engine',
                 'class': BatteryLifeChecker
             },
             {

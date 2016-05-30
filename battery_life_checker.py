@@ -14,12 +14,13 @@ class State(Enum):
     going_home = 1
 
 class BatteryLifeChecker(Layer):
-    def __init__(self, next, telemetry, communicator, engine):
+    def __init__(self, next, config, telemetry, communicator, engine):
         Layer.__init__(self, next)
         self.telemetry = telemetry
         self.communicator = communicator
         self.state = State.normal
         self.engine = engine
+        self.drone_speed = config['speed']
 
     def execute_layer(self, current_output):
         op = current_output
@@ -34,7 +35,12 @@ class BatteryLifeChecker(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
-            if (self.telemetry.get_initial_battery() / 2) + 150 > self.telemetry.get_battery():
+            init_loc = self.telemetry.get_initial_location()
+            current_location = self.telemetry.get_location()
+            current_battery = self.telemetry.get_battery()
+
+            # Checks whether we have enough battery to return home (+ safety margin of 150 seconds)
+            if (init_loc.distance_to(current_location) / self.drone_speed) + 150 > self.telemetry.get_battery():
                 self.state = State.going_home
                 print("LOW BATTERY")
             if self.state == State.going_home:
