@@ -21,6 +21,7 @@ class Telemetry:
         self.location_lock = asyncio.Lock()
         self.start_time = 0
         self.travel_time = travel_time
+        self.battery_id = 0
 
     @asyncio.coroutine
     def initialise(self):
@@ -69,6 +70,11 @@ class Telemetry:
 
         return self.battery_size - elapsed_time
 
+    def get_battery_id(self):
+        return self.battery_id
+
     def recharge_battery(self):
         self.start_time = asyncio.get_event_loop().time()
         self.battery_size = self.real_battery_size
+        self.leaky_battery = False
+        self.battery_id = self.battery_id + 1
