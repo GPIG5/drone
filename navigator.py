@@ -6,18 +6,17 @@ from point import Point
 from reactor import Reactor
 
 class Navigator:
-    def __init__(self, config, data_store, telemetry, messagedispatcher, communicator):
+    def __init__(self, config, data_store, telemetry, messagedispatcher, communicator, detection):
         self.uuid = config.get('DEFAULT', 'uuid')
         self.data_store = data_store
         self.messagedispatcher = messagedispatcher
         self.communicator = communicator
-        self.reactor = Reactor(config, data_store, telemetry, messagedispatcher, communicator)
+        self.reactor = Reactor(config, data_store, telemetry, messagedispatcher, communicator, detection)
         self.current_target = Point(
             latitude = telemetry.get_location().latitude,
             longitude = telemetry.get_location().longitude,
             altitude = telemetry.get_location().altitude
         )
-        self.c2_reactor = self.reactor.c2_reactor
 
     @asyncio.coroutine
     def startup(self):

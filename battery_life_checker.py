@@ -35,6 +35,10 @@ class BatteryLifeChecker(Layer):
         self.bad_battery_id = self.telemetry.get_battery_id()
 
     @asyncio.coroutine
+    def startup(self):
+        yield from asyncio.gather(self.life_startup(), self.fault_startup(), self.battery_change_detector_startup())
+
+    @asyncio.coroutine
     def life_startup(self):
         while True:
             if self.state == State.normal:
