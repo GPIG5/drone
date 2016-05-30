@@ -34,7 +34,7 @@ class Telemetry:
                 if random.randint(0, 100) < 2:
                     self.battery_size = self.battery_size / 2
             if (self.get_battery() <= 0):
-                raise "OUT OF BATTERY"
+                raise Exception("OUT OF BATTERY")
 
             location = self.get_location()
             battery = self.get_battery()
@@ -54,7 +54,7 @@ class Telemetry:
     def set_location(self, new_location: Point):
         with (yield from self.location_lock):
             if new_location is None:
-                raise "lol"
+                raise Exception("lol")
             if (self.get_battery() > 0):
                 self.location = new_location
 
