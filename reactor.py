@@ -7,6 +7,7 @@ from c2_reactor import C2Reactor
 from sector_controller import SectorController
 from swarm_controller import SwarmController
 from pit_stop import PitStop
+import time
 
 id = lambda x: x
 
@@ -24,4 +25,10 @@ class Reactor:
         self.battery_life_checker = bl
         self.pit_stop = ps
     def run(self):
-        return self.entry(Action())
+        start = time.clock()
+        output = self.entry(Action())
+        end = time.clock()
+        t = end - start
+        if t > 1:
+            print("WARNING: reactor took more than 1 second to complete")
+        return output
