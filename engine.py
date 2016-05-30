@@ -15,7 +15,7 @@ class Engine:
 
     def get_current_target(self):
         if self.current_target is None:
-            raise "test"
+            raise Exception()
         return self.current_target
 
     def set_current_target(self, ct):
@@ -23,7 +23,7 @@ class Engine:
 
     def get_location(self):
         if self.location is None:
-            raise "test"
+            raise Exception()
         return self.location
 
     def set_location(self, ct):
@@ -37,7 +37,7 @@ class Engine:
         while True:
             target_location = self.get_current_target()
             if target_location is None:
-                raise "none target location"
+                raise Exception("none target location")
             current_location = self.get_location()
             target_distance = great_circle(current_location, target_location).meters
             travel_distance = self.speed * self.get_travel_time()

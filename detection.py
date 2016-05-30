@@ -7,16 +7,15 @@ import time
 from messages import PinorMesh
 
 class Detection:
-    def __init__(self, config, communicator, message_dispatcher, **kwargs):
+    def __init__(self, config, communicator, message_dispatcher, telemetry, **kwargs):
         self.uuid = config.get('uuid')
         self.data_folder = config.get('data_folder') + config.get('uuid') + '/'
         self.pinor_file = self.data_folder + 'pinor.csv'
+        self.location_file = self.data_folder + 'locations.csv'
         self.image_folder = self.data_folder + 'images/'
         self.communicator = communicator
         self.message_dispatcher = message_dispatcher
-
-    def get_data_folder(self):
-        return self.data_folder
+        self.telemetry = telemetry
 
     @asyncio.coroutine
     def initialise(self):
@@ -29,6 +28,12 @@ class Detection:
         finally:
             yield from f.close()
 
+        f = yield from aiofiles.open(self.location_file, mode='w')
+        try:
+            yield from f.write('img,lat,lon,alt\n')
+        finally:
+            yield from f.close()
+
     @asyncio.coroutine
     def startup(self):
         while True:
@@ -36,11 +41,19 @@ class Detection:
 
             timestamp = str(time.time())
             timestr = time.strftime('%Y%m%d%H%M%S')
+            location = self.telemetry.get_location()
 
             # Write image to file
             f = yield from aiofiles.open(self.image_folder + timestr + '.jpg', mode='wb')
             try:
                 yield from f.write(base64.decodestring(msg.img.encode()))
+            finally:
+                yield from f.close()
+
+            # Write image locations
+            f = yield from aiofiles.open(self.location_file, mode='a')
+            try:
+                yield from f.write(timestr + '.jpg,' + str(location.latitude) + ',' + str(location.longitude) + ',' + str(location.altitude) + '\n')
             finally:
                 yield from f.close()
 
