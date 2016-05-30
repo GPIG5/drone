@@ -20,7 +20,7 @@ class BatteryLifeChecker(Layer):
         self.communicator = communicator
         self.state = State.normal
         self.engine = engine
-        self.drone_speed = config['speed']
+        self.drone_speed = int(config['speed'])
 
     def execute_layer(self, current_output):
         op = current_output
@@ -44,8 +44,8 @@ class BatteryLifeChecker(Layer):
                 self.state = State.going_home
                 print("LOW BATTERY")
             if self.state == State.going_home:
-                print("at home")
                 if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
+                    print("at home")
                     #wait ten seconds for battery replacement
                     print("REPLACING BATTERY")
                     asyncio.sleep(10)
