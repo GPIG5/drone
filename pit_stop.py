@@ -68,9 +68,8 @@ class PitStop(Layer):
 
     @asyncio.coroutine
     def delete_images(self, path):
-        print("something")
         for f in os.listdir(path):
-            pass
-            # file_path = os.path.join(path, f)
+            file_path = os.path.join(path, f)
+            # print(str(file_path))
             # print(file_path)
-            # os.remove(file_path)
+            os.remove(file_path)
