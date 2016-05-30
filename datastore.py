@@ -188,7 +188,7 @@ class GridState:
 
     def update(self, new_sector_state):
         for key, value in self.sector_state.items():
-            if new_sector_state[key] > value:
+            if new_sector_state[key][0] > value[0]:
                 self.sector_state[key] = new_sector_state[key]
 
     def to_json(self):
