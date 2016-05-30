@@ -61,6 +61,15 @@ class PitStop(Layer):
                         self.uuid,
                         op
                     ))
+                    yield from self.delete_images(os.path.join(self.detection.get_data_folder(), "images"))
                     self.state = State.ready
                     print("FINISHED MAINTAINENCE")
             yield from asyncio.sleep(1)
+
+    @asyncio.coroutine
+    def delete_images(self, path):
+        for f in os.listdir(path):
+            file_path = os.path.join(path, f)
+            # print(str(file_path))
+            # print(file_path)
+            os.remove(file_path)
