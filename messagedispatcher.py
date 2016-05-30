@@ -2,7 +2,7 @@ from asyncio import Queue, coroutine
 import messages
 
 class Messagedispatcher:
-    def __init__(self, communicator):
+    def __init__(self, config, communicator, **kwargs):
         self.communicator = communicator
         self.messages = {
             "direct": {

@@ -7,13 +7,16 @@ import time
 from messages import PinorMesh
 
 class Detection:
-    def __init__(self, config, communicator, messagedispatcher):
+    def __init__(self, config, communicator, message_dispatcher, **kwargs):
         self.uuid = config.get('uuid')
         self.data_folder = config.get('data_folder') + config.get('uuid') + '/'
         self.pinor_file = self.data_folder + 'pinor.csv'
         self.image_folder = self.data_folder + 'images/'
         self.communicator = communicator
-        self.messagedispatcher = messagedispatcher
+        self.message_dispatcher = message_dispatcher
+
+    def get_data_folder(self):
+        return self.data_folder
 
     @asyncio.coroutine
     def initialise(self):
@@ -29,7 +32,7 @@ class Detection:
     @asyncio.coroutine
     def startup(self):
         while True:
-            msg = yield from self.messagedispatcher.wait_for_message('direct', 'pinor')
+            msg = yield from self.message_dispatcher.wait_for_message('direct', 'pinor')
 
             timestamp = str(time.time())
             timestr = time.strftime('%Y%m%d%H%M%S')

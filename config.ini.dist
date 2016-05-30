@@ -1,19 +1,22 @@
+[DEFAULT]
+leaky_battery = False
+
 [communicator]
 host = 127.0.0.1
 port = 5555
 
 [main]
-num_drones = 15
+num_drones = 1
 
 [telemetry]
 battery_size = 1800
 start_location = (53.929472,-1.165084,75)
-c2_location = (53.929472,-1.165084,100)
+c2_location = (53.929472,-1.165084,2)
 
 [detection]
 data_folder = ./data/
 
-[swarm]
+[navigator]
 avoidance_radius = 25
 aggregation_timeout = 10
 critical_avoidance_range = 30
@@ -24,8 +27,15 @@ drone_timeout = 10
 cohesion_degree = 75
 
 [engine]
-speed = 5
+speed = 50
 travel_time = 1
 
-[defects]
-leaky_battery = False
+
+
+
+[mesh_controller]
+max_messages = 3
+[message_dispatcher]
+[data_store]
+detection_radius = 25
+
