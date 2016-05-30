@@ -61,6 +61,9 @@ class Telemetry:
     def get_initial_battery(self):
         return self.battery_size
 
+    def get_start_time(self):
+        return self.start_time
+
     def get_initial_location(self):
         return self.initial_location
 

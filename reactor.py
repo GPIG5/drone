@@ -6,6 +6,7 @@ from person_detector import PersonDetector
 from c2_reactor import C2Reactor
 from sector_controller import SectorController
 from swarm_controller import SwarmController
+from pit_stop import PitStop
 
 id = lambda x: x
 
@@ -13,7 +14,7 @@ class Reactor:
     def __init__(self, config, data_store, telemetry, message_dispatcher, communicator, detection):
         secc = SectorController(id, data_store, telemetry, config["swarm"])
         swc = SwarmController(secc.execute_layer, config["swarm"], data_store, telemetry)
-        ps = PitStop(swc.execute_layer, telemetry, detection, communicator)
+        ps = PitStop(swc.execute_layer, telemetry, detection, communicator, config)
         c2 = C2Reactor(ps.execute_layer, data_store, message_dispatcher, telemetry)
         pd = PersonDetector(c2.execute_layer)
         bl = BatteryLifeChecker(pd.execute_layer, telemetry, int(config['engine']['speed']))

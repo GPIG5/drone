@@ -13,13 +13,14 @@ class State(Enum):
     busy = 1
 
 class PitStop(Layer):
-    def __init__(self, next, telemetry, detection, communicator):
+    def __init__(self, next, telemetry, detection, communicator, config):
         Layer.__init__(self, next)
         self.telemetry = telemetry
         self.detection = detection
         self.communicator = communicator
         self.last_upload_time = self.telemetry.get_start_time()
         self.state = State.ready
+        self.uuid = config['DEFAULT']['uuid']
 
     def execute_layer(self, current_output):
         op = current_output
@@ -38,9 +39,9 @@ class PitStop(Layer):
             if os.path.isfile(os.path.join(path, f)):
                 fl = yield from aiofiles.open(os.path.join(path, f), mode='rb')
                 try:
-                    contents = yield from f.read()
+                    contents = yield from fl.read()
                 finally:
-                    yield from f.close()
+                    yield from fl.close()
                 op[f] = base64.b64encode(contents).decode('utf-8')
             else:
                 op[f] = yield from self.readfiles(os.path.join(path, f))

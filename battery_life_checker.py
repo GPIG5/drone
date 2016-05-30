@@ -7,6 +7,8 @@ import time
 import base64
 import io
 from messages import UploadDirect
+import asyncio
+import math
 
 class State(Enum):
     normal = 0
@@ -42,6 +44,9 @@ class BatteryLifeChecker(Layer):
     def life_startup(self):
         while True:
             if self.state == State.normal:
+                init_loc = self.telemetry.get_initial_location()
+                current_location = self.telemetry.get_location()
+                current_battery = self.telemetry.get_battery()
                 if (init_loc.distance_to(current_location) / self.drone_speed) + 150 > current_battery:
                     self.bad_state()
                     print("LOW BATTERY")

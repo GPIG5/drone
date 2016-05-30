@@ -71,3 +71,6 @@ class Detection:
 
     def get_pinor(self):
         return self.pinor
+
+    def get_data_folder(self):
+        return self.data_folder
