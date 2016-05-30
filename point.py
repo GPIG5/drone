@@ -71,7 +71,7 @@ class Space:
         }
     @classmethod
     def from_json(cls, d, self=None):
-        if self == None:
+        if self is None:
             self = cls.__new__(cls)
         self = Space(
             bottom_left = Point.from_json(d["bottom_left"]),

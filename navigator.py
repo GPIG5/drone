@@ -1,7 +1,7 @@
 import asyncio
 
 import datastore
-from messages import ClaimMesh, CompleteMesh, UploadDirect
+from messages import GridMesh, UploadDirect
 from point import Point
 from reactor import Reactor
 
@@ -22,21 +22,19 @@ class Navigator:
     def startup(self):
         while True:
             action = self.reactor.run()
+            grid = self.data_store.get_grid_state()
             if action is not None:
                 if action.has_move():
                     self.current_target = action.move
                 if action.has_claim_sector():
-                    grid = self.data_store.get_grid_state()
-                    grid.set_state_for(action.claim_sector, datastore.SectorState.being_searched)
-                    msg = ClaimMesh(self.uuid, self.uuid, action.claim_sector, grid.get_sector_space(action.claim_sector))
-                    yield from self.communicator.send_message(msg)
+                    grid.set_state_for(action.claim_sector, datastore.SectorState.being_searched, self.uuid)
                 if action.has_complete_sector():
-                    grid = self.data_store.get_grid_state()
-                    grid.set_state_for(action.complete_sector, datastore.SectorState.searched)
-                    msg = CompleteMesh(self.uuid, self.uuid, action.complete_sector, grid.get_sector_space(action.complete_sector))
-                    yield from self.communicator.send_message(msg)
+                    grid.set_state_for(action.complete_sector, datastore.SectorState.searched, self.uuid)
                 if action.has_send_data():
                     yield from self.communicator.send_message(UploadDirect(self.uuid, action.send_data))
+
+            if grid is not None:
+                yield from self.communicator.send_message(GridMesh(self.uuid, self.uuid, grid))
 
             yield from asyncio.sleep(1)
 

@@ -1,5 +1,6 @@
+from ast import literal_eval as make_tuple
 import asyncio
-from enum import Enum
+from enum import IntEnum
 import itertools
 import math
 import time
@@ -87,7 +88,7 @@ class Datastore:
 
     @asyncio.coroutine
     def startup(self):
-        yield from asyncio.gather(self.update_status(), self.update_grid_claim(), self.update_grid_complete())
+        yield from asyncio.gather(self.update_status(), self.update_grid())
 
     @asyncio.coroutine
     def update_status(self):
@@ -98,27 +99,24 @@ class Datastore:
             # print("got message from: " + d.uuid)
 
     @asyncio.coroutine
-    def update_grid_claim(self):
+    def update_grid(self):
         while True:
-            msg = yield from self.messagedispatcher.wait_for_message("mesh", "claim")
-            self.grid_state.set_state_for(msg.sector_index, SectorState.being_searched, msg.origin)
-
-    @asyncio.coroutine
-    def update_grid_complete(self):
-        while True:
-            msg = yield from self.messagedispatcher.wait_for_message("mesh", "complete")
-            self.grid_state.set_state_for(msg.sector_index, SectorState.searched)
+            msg = yield from self.messagedispatcher.wait_for_message("mesh", "grid")
+            self.grid_state.update(msg.grid_state.sector_state)
 
 
-class SectorState(Enum):
-    searched = 1
-    notSearched = 2
-    shouldNotSearch = 3
-    being_searched = 4
+class SectorState(IntEnum):
+    notSearched = 0
+    shouldNotSearch = 1
+    being_searched = 2
+    searched = 3
 
 
 class GridState:
     def __init__(self, space, detection_radius):
+        self.space = space
+        self.detection_radius = detection_radius
+
         detection_radius_multiplier = 15 / 6
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
@@ -158,7 +156,7 @@ class GridState:
                position.longitude >= bottom_left.longitude and \
                position.longitude <= top_right.longitude
 
-    def set_state_for(self, sector_index, state, drone_uuid=None):
+    def set_state_for(self, sector_index, state, drone_uuid):
         self.sector_state[sector_index][0] = state
         self.sector_state[sector_index][1] = drone_uuid
 
@@ -187,3 +185,28 @@ class GridState:
     def get_sector_space(self, sector_index):
         corners = self.get_sector_corners(sector_index)
         return Space(corners[0], corners[3])
+
+    def update(self, new_sector_state):
+        for key, value in self.sector_state.items():
+            if new_sector_state[key][0] > value[0]:
+                self.sector_state[key] = new_sector_state[key]
+
+    def to_json(self):
+        return {
+            'space': self.space.to_json(),
+            'detection_radius': self.detection_radius,
+            'y_count': self.y_count,
+            'x_count': self.x_count,
+            'sector_height': self.sector_height,
+            'sector_width': self.sector_width,
+            'sector_state': {str(key): value for key,value in self.sector_state.items()}
+        }
+
+    @classmethod
+    def from_json(cls, d, self=None):
+        new_sector_state = {make_tuple(key): [SectorState(value[0]), value[1]] for key,value in d['sector_state'].items()}
+        if self is None:
+            self = cls.__new__(cls, Space.from_json(d['space']), d['detection_radius'])
+            self.sector_state = new_sector_state
+
+        return self
