@@ -18,7 +18,7 @@ class PitStop(Layer):
         self.telemetry = telemetry
         self.detection = detection
         self.communicator = communicator
-        self.last_upload_time = self.telemetry.get_start_time()
+        self.last_upload_time = time.time()
         self.state = State.ready
         self.uuid = config['DEFAULT']['uuid']
 
@@ -51,7 +51,7 @@ class PitStop(Layer):
     def startup(self):
         while True:
             if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
-                if (time.time() - self.last_upload_time) > 600:
+                if True: #(time.time() - self.last_upload_time) > 600:
                     self.last_upload_time = time.time()
                     self.state = State.busy
                     print("PERFORMING MAINTAINENCE")

@@ -29,7 +29,7 @@ class Datastore:
         if uuid in self.drone_state:
             return self.drone_state[uuid]
         else:
-            raise "no drone with that uuid"
+            raise Exception("no drone with that uuid")
 
     def all_drones(self):
         return self.drone_state

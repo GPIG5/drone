@@ -62,17 +62,23 @@ class BatteryLifeChecker(Layer):
 
     @asyncio.coroutine
     def fault_startup(self):
-        ctime = time.time()
-        cbattery = self.telemetry.get_battery()
+        init = True
+        last_time = time.time()
+        last_battery = self.telemetry.get_battery()
         while True:
-            last_time = ctime
-            last_battery = cbattery
-            yield from asyncio.sleep(10)
             ctime = time.time()
             cbattery = self.telemetry.get_battery()
             if self.state == State.normal:
-                pchange = ((math.fabs((ctime - last_time) - (cbattery - last_battery)) / 20) - 1) * 100
-                if pchange > 10:
-                    print("BATTERY FAULT DETECTED")
-                    print(str(pchange) + " percentage error")
-                    self.bad_state()
+                if init:
+                    init = False
+                else:
+                    pchange = (math.fabs(float(ctime - last_time) - float(cbattery - last_battery)) / float(self.telemetry.get_initial_battery())) * 100.0
+                    if pchange > 5:
+                        print("BATTERY FAULT DETECTED")
+                        print(str(pchange) + " percentage error")
+                        self.bad_state()
+            else:
+                init = True
+            last_time = ctime
+            last_battery = cbattery
+            yield from asyncio.sleep(5)
