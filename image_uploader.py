@@ -38,9 +38,9 @@ class ImageUploader(Layer):
             if os.path.isfile(os.path.join(path, f)):
                 fl = yield from aiofiles.open(os.path.join(path, f), mode='rb')
                 try:
-                    contents = yield from f.read()
+                    contents = yield from fl.read()
                 finally:
-                    yield from f.close()
+                    yield from fl.close()
                 op[f] = base64.b64encode(contents).decode('utf-8')
             else:
                 op[f] = yield from self.readfiles(os.path.join(path, f))
@@ -50,14 +50,15 @@ class ImageUploader(Layer):
     def startup(self):
         while True:
             if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
-                if (time.time() - self.last_upload_time) > 600:
+                if (time.time() - self.last_upload_time) > 10:
                     self.state = State.uploading
                     print("UPLOADING")
                     op = yield from self.readfiles(self.detection.get_data_folder())
                     yield from self.communicator.send_message(messages.UploadDirect(
-                        self.uuid,
+                        self.telemetry.uuid,
                         op
                     ))
                     self.state = State.normal
                     print("FINISHED UPLOADING")
+                    self.last_upload_time = time.time()
             yield from asyncio.sleep(1)
