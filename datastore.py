@@ -103,7 +103,10 @@ class Datastore:
     def update_grid(self):
         while True:
             msg = yield from self.messagedispatcher.wait_for_message("mesh", "grid")
-            self.grid_state.update(msg.grid_state.sector_state)
+            if self.grid_state is None:
+                self.grid_state = msg.grid_state
+            else:
+                self.grid_state.update(msg.grid_state.sector_state)
 
 
 class SectorState(IntEnum):
