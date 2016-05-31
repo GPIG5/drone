@@ -91,4 +91,4 @@ class BatteryLifeChecker(Layer):
                 init = True
             last_time = ctime
             last_battery = cbattery
-            yield from asyncio.sleep(10)
+            yield from asyncio.sleep(5)
