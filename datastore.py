@@ -21,6 +21,7 @@ class Drone:
 
 class Datastore:
     def __init__(self, config, messagedispatcher):
+        self.uuid = config.get('uuid')
         self.messagedispatcher = messagedispatcher
         self.drone_state = {}
         self.detection_radius = config.getfloat('detection_radius')
@@ -66,7 +67,7 @@ class Datastore:
         for i, j in itertools.product(range(self.grid_state.x_count), range(self.grid_state.y_count)):
             sector_state = self.grid_state.state_for((i, j))
             sector_drone = self.grid_state.drone_of((i, j))
-            if sector_drone is not None:
+            if sector_drone is not None and sector_drone != self.uuid:
                 # print("STATE OF OTHER DRONES:")
                 # print(str(self.drone_state))
                 sector_drone = self.drone_state[sector_drone]
@@ -78,7 +79,7 @@ class Datastore:
 
             # If the sector has been claimed by a drone the communications from who have ceased, then we would like to
             # search this sector as well
-            elif timeout != 0 and sector_state == SectorState.being_searched and sector_drone is not None:
+            elif timeout != 0 and sector_state == SectorState.being_searched and sector_drone is not None and sector_drone != self.uuid:
                 if sector_drone.last_seen < time.time() - timeout:
                     distance = self.grid_state.get_distance_to((i, j), position)
                     if min_distance[0] is None or min_distance[1] > distance:
