@@ -72,7 +72,17 @@ class BatteryLifeChecker(Layer):
                 if init:
                     init = False
                 else:
-                    pchange = (math.fabs(float(ctime - last_time) - float(cbattery - last_battery)) / float(self.telemetry.get_initial_battery())) * 100.0
+                    pchange = (
+                        math.fabs(
+                            float(
+                                ctime - last_time
+                            ) - float(
+                                last_battery - cbattery
+                            )
+                        ) / float(
+                            self.telemetry.get_initial_battery()
+                        )
+                    ) * 100.0
                     if pchange > 5:
                         print("BATTERY FAULT DETECTED")
                         print(str(pchange) + " percentage error")
@@ -81,4 +91,4 @@ class BatteryLifeChecker(Layer):
                 init = True
             last_time = ctime
             last_battery = cbattery
-            yield from asyncio.sleep(5)
+            yield from asyncio.sleep(10)
