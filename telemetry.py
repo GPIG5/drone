@@ -31,8 +31,8 @@ class Telemetry:
     def startup(self):
         while True:
             if self.leaky_battery:
-                if random.randint(0, 100) < 2:
-                    self.battery_size = self.battery_size / 2
+                if random.randint(0, 100) < 1:
+                    self.battery_size = random.random() * self.battery_size
             if (self.get_battery() <= 0):
                 raise Exception("OUT OF BATTERY")
 
@@ -59,7 +59,7 @@ class Telemetry:
                 self.location = new_location
 
     def get_initial_battery(self):
-        return self.battery_size
+        return self.real_battery_size
 
     def get_start_time(self):
         return self.start_time
