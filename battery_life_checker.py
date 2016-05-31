@@ -83,7 +83,7 @@ class BatteryLifeChecker(Layer):
                             self.telemetry.get_initial_battery()
                         )
                     ) * 100.0
-                    if pchange > 5:
+                    if pchange > 20:
                         print("BATTERY FAULT DETECTED")
                         print(str(pchange) + " percentage error")
                         self.bad_state()
