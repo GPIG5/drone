@@ -31,8 +31,6 @@ class Navigator:
                     grid.set_state_for(action.claim_sector, datastore.SectorState.being_searched, self.uuid)
                 if action.has_complete_sector():
                     grid.set_state_for(action.complete_sector, datastore.SectorState.searched, self.uuid)
-                if action.has_send_data():
-                    yield from self.communicator.send_message(UploadDirect(self.uuid, action.send_data))
                 if self.debug and action.has_move_info():
                     print(action.move_info)
 

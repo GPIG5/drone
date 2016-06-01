@@ -183,13 +183,16 @@ class DeployMesh(MeshMessage):
         return self
 
 class UploadDirect(DirectMessage):
-    def __init__(self, uuid, images):
+    def __init__(self, uuid, images, grid):
         DirectMessage.__init__(self, uuid)
         self.images = images
+        self.grid_state = grid
     def to_json(self):
         d = DirectMessage.to_json(self)
         d["data"]["images"] = self.images
         d["data"]["datatype"] = "upload"
+        if self.grid_state is not None:
+            d["data"]["grid"] = self.grid_state.to_json()
         return d
     @classmethod
     def from_json(cls, d, self=None):
@@ -197,6 +200,8 @@ class UploadDirect(DirectMessage):
             self = cls.__new__(cls)
         self = DirectMessage.from_json(d, self)
         self.images = d["data"]["images"]
+        if "grid" in d["data"]:
+            self.grid_state = GridState.from_json(d["data"]["grid"])
         return self
 
 class GridMesh(MeshMessage):

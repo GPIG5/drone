@@ -13,13 +13,14 @@ class State(Enum):
     busy = 1
 
 class PitStop(Layer):
-    def __init__(self, next, telemetry, detection, communicator, config):
+    def __init__(self, next, telemetry, detection, communicator, config, data_store):
         Layer.__init__(self, next)
         self.telemetry = telemetry
         self.detection = detection
         self.communicator = communicator
         self.last_upload_time = time.time()
         self.state = State.ready
+        self.data_store = data_store
         self.uuid = config['DEFAULT']['uuid']
 
     def execute_layer(self, current_output):
@@ -63,7 +64,8 @@ class PitStop(Layer):
                     op = yield from self.readfiles(self.detection.get_data_folder())
                     yield from self.communicator.send_message(messages.UploadDirect(
                         self.uuid,
-                        op
+                        op,
+                        self.data_store.grid_state
                     ))
                     yield from self.delete_images(os.path.join(self.detection.get_data_folder(), "images"))
                     self.state = State.ready
