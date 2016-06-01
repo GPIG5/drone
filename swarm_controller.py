@@ -133,10 +133,12 @@ class SwarmController(Layer):
         # return time.time() - self.aggregation_timer > self.aggregation_timeout
         if time.time() - self.aggregation_timer > self.aggregation_timeout:
             current_position = self.telemetry.get_location()
-            center_of_mass = self.compute_neighbour_mass_center()
-            if center_of_mass is not None:
-                distance_to_mass = center_of_mass.distance_to(current_position)
-                if distance_to_mass < self.radio_radius*0.75:
+            position_of_closest = self.data_store.get_position_of_drone_closest_to(current_position,
+                                                                                   timeout=self.drone_timeout)
+            # center_of_mass = self.compute_neighbour_mass_center()
+            if position_of_closest is not None:
+                distance_to_closest = position_of_closest.distance_to(current_position)
+                if distance_to_closest < self.radio_radius*0.5:
                     self.aggregation_timer = time.time()
                 else:
                     return True
