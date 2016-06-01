@@ -208,4 +208,4 @@ class SwarmController(Layer):
     def perform_normal(self, current_output):
         if self.state != State.normal:
             self.state = State.normal
-        return self.next(current_output)
+        return Layer.execute_layer(self, current_output)

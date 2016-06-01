@@ -41,6 +41,7 @@ class SectorController(Layer):
     def execute_layer(self, current_output):
         self.grid_state = self.data_store.get_grid_state()
         if self.grid_state is None:
+            current_output.move = self.telemetry.get_initial_location()
             return Layer.execute_layer(self, current_output)
 
         if self.target_sector is None:
