@@ -38,6 +38,7 @@ class Point(geopy.point.Point):
             )
         )
         b += 180 + ((h * 180) - 90)
+        b %= 360
         return self.point_at_vector(100 - (dist * 10), b)
 
     def bearing_to_point(self, target_location):
