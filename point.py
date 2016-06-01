@@ -60,6 +60,9 @@ class Point(geopy.point.Point):
         lon = great_circle(meters=x_dist).destination(self, 90).longitude if x_dist > 0 else self.longitude
         return Point(latitude = lat, longitude = lon, altitude = self.altitude)
 
+    def simple_string(self):
+        return str(self.latitude) + " " + str(self.longitude) + " " + str(self.altitude)
+
 class Space:
     def __init__(self, bottom_left, top_right):
         self.bottom_left = bottom_left

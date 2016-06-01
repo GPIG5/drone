@@ -8,6 +8,7 @@ from reactor import Reactor
 class Navigator:
     def __init__(self, config, data_store, telemetry, messagedispatcher, communicator, detection):
         self.uuid = config.get('DEFAULT', 'uuid')
+        self.debug = 'True' == config.get('DEFAULT', 'debug')
         self.data_store = data_store
         self.messagedispatcher = messagedispatcher
         self.communicator = communicator
@@ -30,8 +31,8 @@ class Navigator:
                     grid.set_state_for(action.claim_sector, datastore.SectorState.being_searched, self.uuid)
                 if action.has_complete_sector():
                     grid.set_state_for(action.complete_sector, datastore.SectorState.searched, self.uuid)
-                if action.has_send_data():
-                    yield from self.communicator.send_message(UploadDirect(self.uuid, action.send_data))
+                if self.debug and action.has_move_info():
+                    print(action.move_info)
 
             if grid is not None:
                 yield from self.communicator.send_message(GridMesh(self.uuid, self.uuid, grid))

@@ -54,7 +54,7 @@ class Telemetry:
     def set_location(self, new_location: Point):
         with (yield from self.location_lock):
             if new_location is None:
-                raise Exception("lol")
+                raise Exception("A location was none even though it should have been set")
             if (self.get_battery() > 0):
                 self.location = new_location
 
