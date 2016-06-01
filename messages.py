@@ -202,6 +202,8 @@ class UploadDirect(DirectMessage):
         self.images = d["data"]["images"]
         if "grid" in d["data"]:
             self.grid_state = GridState.from_json(d["data"]["grid"])
+        else:
+            self.grid_state = None
         return self
 
 class GridMesh(MeshMessage):
