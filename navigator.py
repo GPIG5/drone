@@ -33,7 +33,7 @@ class Navigator:
                     grid.set_state_for(action.claim_sector, datastore.SectorState.being_searched, self.uuid)
                 if action.has_complete_sector():
                     grid.set_state_for(action.complete_sector, datastore.SectorState.searched, self.uuid)
-                if self.debug and action.has_move_info():
+                if (self.debug or self.current_target.altitude < 10) and action.has_move_info():
                     print(action.move_info)
 
             if grid is not None:
