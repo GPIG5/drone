@@ -31,8 +31,8 @@ class Point(geopy.point.Point):
         h = 1.0 / float(
             int.from_bytes_le(
                 b"\xff" * 16
-            ) / int.from_bytes_le(
-                UUID(duuid).bytes, byteorder='little'
+            ) / int.from_bytes(
+                UUID(duuid).bytes, byteorder='big'
             )
         )
         b += 180 + ((h * 180) - 90)
