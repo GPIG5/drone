@@ -120,8 +120,8 @@ class GridState:
         self.space = space
         self.detection_radius = detection_radius
 
-        horizontal_detection_radius_multiplier = 0.96
-        vertical_detection_radius_multiplier = 0.96
+        horizontal_detection_radius_multiplier = 0.7
+        vertical_detection_radius_multiplier = 0.7
 
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
