@@ -69,6 +69,7 @@ class Datastore:
             sector_drone = self.grid_state.drone_of((i, j))
             if sector_drone is not None and sector_drone != self.uuid:
                 # print("STATE OF OTHER DRONES:")
+                # print(self.uuid)
                 # print(str(self.drone_state))
                 sector_drone = self.drone_state[sector_drone]
 
@@ -103,9 +104,7 @@ class Datastore:
     def update_grid(self):
         while True:
             msg = yield from self.messagedispatcher.wait_for_message("mesh", "grid")
-            if self.grid_state is None:
-                self.grid_state = msg.grid_state
-            else:
+            if self.grid_state is not None:
                 self.grid_state.update(msg.grid_state.sector_state)
 
 
