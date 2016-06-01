@@ -30,9 +30,11 @@ class Point(geopy.point.Point):
         b = self.bearing_to_point(p2)
         h = 1.0 / float(
             int.from_bytes(
-                b"\xff" * 16
+                b"\xff" * 16,
+                byteorder='little'
             ) / int.from_bytes(
-                UUID(duuid).bytes, byteorder='big'
+                UUID(duuid).bytes_le,
+                byteorder='little'
             )
         )
         b += 180 + ((h * 180) - 90)
