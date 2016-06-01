@@ -26,6 +26,10 @@ class PitStop(Layer):
         op = current_output
         if self.state == State.busy:
             op.move = self.telemetry.get_initial_location()
+            if hasattr(current_output.move, 'simple_string'):
+                op.move_info = "BUSY WITH MAINTENANCE: " + op.move.simple_string()
+            else:
+                op.move_info = "BUSY WITH MAINTENANCE"
         elif self.state == State.ready:
             op = Layer.execute_layer(self, op)
         else:
@@ -72,4 +76,8 @@ class PitStop(Layer):
             file_path = os.path.join(path, f)
             # print(str(file_path))
             # print(file_path)
-            os.remove(file_path)
+            try:
+                os.remove(file_path)
+            except PermissionError:
+                print("Permission error deleting :(")
+

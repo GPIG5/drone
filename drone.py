@@ -115,13 +115,13 @@ def run_codrone(configs):
 def run_drone(config):
     return run_coroutine(drone, config)
 
-def main():
+def main(config_file):
     oldloop = asyncio.get_event_loop()
     oldloop.close()
 
     print("Bootstrapping drone configuration")
     config = configparser.ConfigParser()
-    config.read("config.ini")
+    config.read(config_file)
     num_drones = int(config["main"]["num_drones"])
     df = config['detection']['data_folder']
     if os.path.exists(df):
@@ -134,7 +134,7 @@ def main():
     configs = []
     for i in range(0, num_drones):
         config = configparser.ConfigParser()
-        config.read("config.ini")
+        config.read(config_file)
         loc = tuple(
             [float(x) for x in make_tuple(
                 config["telemetry"]["start_location"]
@@ -181,4 +181,12 @@ def multi_drone_hybrid(configs):
     return run_processes(run_codrone, processes)
 
 if __name__ == "__main__":
-    main()
+
+    arguments = sys.argv
+    if len(arguments) > 2 and "config" in arguments:
+        config_file = arguments[arguments.index("config") + 1]
+        print("Config with: " + config_file)
+    else:
+        config_file = 'config.ini'
+
+    main(config_file)

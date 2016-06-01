@@ -83,7 +83,7 @@ class SwarmController(Layer):
     def perform_avoidance(self, current_output):
 
         if self.state != State.avoidance:
-            # print("AVOIDANCE INITIATED")
+            print("AVOIDANCE INITIATED")
 
             # If avoidance was just initiated, we need to calculate which way to avoid to
             self.state = State.avoidance
@@ -115,6 +115,10 @@ class SwarmController(Layer):
 
         self.aggregation_timer = time.time()
         current_output.move = self.target
+        if hasattr(current_output.move, 'simple_string'):
+            current_output.move_info = "AVOIDANCE MOVE: " + current_output.move.simple_string()
+        else:
+            current_output.move_info = "AVOIDANCE MOVE"
         return current_output
 
     def avoidance_complete(self):
@@ -132,7 +136,7 @@ class SwarmController(Layer):
             center_of_mass = self.compute_neighbour_mass_center()
             if center_of_mass is not None:
                 distance_to_mass = center_of_mass.distance_to(current_position)
-                if distance_to_mass < self.radio_radius*0.5:
+                if distance_to_mass < self.radio_radius*0.75:
                     self.aggregation_timer = time.time()
                 else:
                     return True
@@ -142,8 +146,8 @@ class SwarmController(Layer):
             return False
 
     def perform_coherence(self, current_output):
-        if self.state != State.coherence or self.coherence_needed():
-            # If coherence was just initiated, we need to calculate which way to avoid to
+        if self.state != State.coherence:
+            print("Coherence initiated")
             self.state = State.coherence
 
         if self.coherence_needed():
@@ -161,6 +165,7 @@ class SwarmController(Layer):
                              (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
             else:
                 # If no neighbours in range, move towards the initial position
+                print("FRIENDS LOST")
                 initial_position = self.telemetry.get_initial_location()
                 bearing_to_initial = current_position.bearing_to_point(initial_position)
 
@@ -172,10 +177,14 @@ class SwarmController(Layer):
                     self.target = towards_home
 
             # print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
-            #       "CURRENT POSITION: " + str(current_position) +
-            #       "DISTANCE: " + str(self.target.distance_to(current_position)))
+                  # "CURRENT POSITION: " + str(current_position) +
+                  # "DISTANCE: " + str(self.target.distance_to(current_position)))
 
         current_output.move = self.target
+        if hasattr(current_output.move, 'simple_string'):
+            current_output.move_info = "COHERENCE MOVE: " + current_output.move.simple_string()
+        else:
+            current_output.move_info = "COHERENCE MOVE"
         return current_output
 
     def compute_neighbour_mass_center(self):

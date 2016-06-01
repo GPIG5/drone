@@ -1,3 +1,4 @@
+import random
 from enum import Enum
 
 from datastore import SectorState
@@ -53,6 +54,7 @@ class SectorController(Layer):
                 if self.within_target():
                     if self.target_unclaimed():
                         # We claim the sector and start searching it
+                        print("Claiming target: " + str(self.target_sector))
                         current_output.claim_sector = self.target_sector
                         return self.perform_search(current_output)
                     else:
@@ -65,6 +67,7 @@ class SectorController(Layer):
                 return self.move_to_target(current_output)
             elif self.state == State.searching:
                 if self.search_complete():
+                    print("Search complete")
                     current_output.complete_sector = self.target_sector
                     self.state = State.moving
                     self.calculate_target()
@@ -87,7 +90,7 @@ class SectorController(Layer):
             current_position = self.telemetry.get_location()
             top_left = self.grid_state.get_sector_corners(self.target_sector)[2]
             self.move_target = top_left.point_at_vector(self.detection_radius, 180)
-            self.move_target.altitude -= 10
+            self.move_target.altitude -= random.uniform(1, 11)
             self.state = State.searching
             self.searching_state = SearchState.initial
             self.trip_count = 0
@@ -119,6 +122,10 @@ class SectorController(Layer):
                     self.move_target = old_target.point_at_vector(self.grid_state.sector_width, 270)
 
         current_output.move = self.move_target
+        if hasattr(current_output.move, 'simple_string'):
+            current_output.move_info = "SEARCHING MOVE: " + current_output.move.simple_string()
+        else:
+            current_output.move_info = "SEARCHING MOVE"
         return current_output
 
     def calculate_target(self):
@@ -141,6 +148,10 @@ class SectorController(Layer):
     def move_to_target(self, current_output):
         if self.move_target is not None:
             current_output.move = self.move_target
+            if hasattr(current_output.move, 'simple_string'):
+                current_output.move_info = "SECTOR MOVE: " + current_output.move.simple_string()
+            else:
+                current_output.move_info = "SECTOR MOVE"
         return current_output
 
     def search_complete(self):

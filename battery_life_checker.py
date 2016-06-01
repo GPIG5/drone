@@ -26,6 +26,10 @@ class BatteryLifeChecker(Layer):
         op = current_output
         if self.state == State.going_home:
             op.move = self.telemetry.get_initial_location()
+            if hasattr(current_output.move, 'simple_string'):
+                op.move_info = "OUT OF BATTERY MOVE: " + op.move.simple_string()
+            else:
+                op.move_info = "OUT OF BATTERY MOVE"
         elif self.state == State.normal:
             op = Layer.execute_layer(self, op)
         else:
