@@ -29,7 +29,7 @@ class Point(geopy.point.Point):
     def perp(self, p2, dist, duuid):
         b = self.bearing_to_point(p2)
         h = 1.0 / float(
-            int.from_bytes_le(
+            int.from_bytes(
                 b"\xff" * 16
             ) / int.from_bytes(
                 UUID(duuid).bytes, byteorder='big'
