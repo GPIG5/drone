@@ -11,6 +11,7 @@ import messages
 class State(Enum):
     ready = 0
     busy = 1
+    maintained = 3
 
 class PitStop(Layer):
     def __init__(self, next, telemetry, detection, communicator, config, data_store):
@@ -19,7 +20,8 @@ class PitStop(Layer):
         self.detection = detection
         self.communicator = communicator
         self.last_upload_time = time.time()
-        self.state = State.ready
+        # Start in maintained
+        self.state = State.maintained
         self.data_store = data_store
         self.uuid = config['DEFAULT']['uuid']
 
@@ -31,7 +33,7 @@ class PitStop(Layer):
                 op.move_info = "BUSY WITH MAINTENANCE: " + op.move.simple_string()
             else:
                 op.move_info = "BUSY WITH MAINTENANCE"
-        elif self.state == State.ready:
+        elif self.state == State.ready or self.state == State.maintained:
             op = Layer.execute_layer(self, op)
         else:
             raise NotImplementedError()
@@ -55,8 +57,9 @@ class PitStop(Layer):
     @asyncio.coroutine
     def startup(self):
         while True:
-            if self.telemetry.get_location().distance_to(self.telemetry.get_initial_location()) < 10:
-                if True: #(time.time() - self.last_upload_time) > 600:
+            dist = self.telemetry.get_location().distance_to(self.telemetry.get_initial_location())
+            if dist < 10:
+                if self.state == State.ready: #(time.time() - self.last_upload_time) > 600:
                     self.last_upload_time = time.time()
                     self.state = State.busy
                     print("PERFORMING MAINTAINENCE")
@@ -68,8 +71,13 @@ class PitStop(Layer):
                         self.data_store.grid_state
                     ))
                     yield from self.delete_images(os.path.join(self.detection.get_data_folder(), "images"))
-                    self.state = State.ready
+                    # After maintenance go to uploaded.
+                    self.state = State.maintained
                     print("FINISHED MAINTAINENCE")
+            elif dist > 100:
+                # We moved away from C2, when we get back, maintain again.
+                print("MOVED FROM C2, READY")
+                self.state = State.ready
             yield from asyncio.sleep(1)
 
     @asyncio.coroutine
