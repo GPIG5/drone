@@ -24,7 +24,7 @@ class Detection:
 
         f = yield from aiofiles.open(self.pinor_file, mode='w')
         try:
-            yield from f.write('timestamp,lat,lon,alt,img\n')
+            yield from f.write('timestamp,lat,lon,alt,img,dist\n')
         finally:
             yield from f.close()
 
@@ -63,7 +63,12 @@ class Detection:
                 try:
                     for pinor in msg.pinor:
                         point = pinor.to_json()
-                        yield from f.write(timestamp + ',' + str(point['lat']) + ',' + str(point['lon']) + ',' + str(point['alt']) + ',' + timestr + '.jpg' + '\n')
+                        yield from f.write(timestamp + ','
+                                           + str(point['lat']) + ','
+                                           + str(point['lon']) + ','
+                                           + str(point['alt']) + ','
+                                           + timestr + '.jpg' + ','
+                                           + str(location.distance_to(pinor)) + '\n')
                 finally:
                     yield from f.close()
 
