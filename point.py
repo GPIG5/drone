@@ -33,7 +33,7 @@ class Point(geopy.point.Point):
                 b"\xff" * 16,
                 byteorder='little'
             ) / int.from_bytes(
-                UUID(duuid).bytes_le,
+                uuid.UUID(duuid).bytes_le,
                 byteorder='little'
             )
         )
