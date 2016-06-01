@@ -202,6 +202,7 @@ class GridState:
             'detection_radius': self.detection_radius,
             'y_count': self.y_count,
             'x_count': self.x_count,
+            'origin': self.origin.to_json(),
             'sector_height': self.sector_height,
             'sector_width': self.sector_width,
             'sector_state': {str(key): value for key,value in self.sector_state.items()}
@@ -213,5 +214,6 @@ class GridState:
         if self is None:
             self = cls.__new__(cls, Space.from_json(d['space']), d['detection_radius'])
             self.sector_state = new_sector_state
+            self.origin = Point.from_json(d['origin'])
 
         return self
