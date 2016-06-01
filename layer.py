@@ -11,12 +11,13 @@ class Layer:
 
 
 class Action:
-    def __init__(self, move=None, take_picture=None, claim_sector=None, complete_sector=None, send_data=None):
+    def __init__(self, move=None, take_picture=None, claim_sector=None, complete_sector=None, send_data=None, move_info=None):
         self.move = move
         self.take_picture = take_picture
         self.claim_sector = claim_sector
         self.complete_sector = complete_sector
         self.send_data = send_data
+        self.move_info = move_info
 
     def has_move(self):
         return self.move is not None
@@ -32,3 +33,6 @@ class Action:
 
     def has_send_data(self):
         return self.send_data is not None
+
+    def has_move_info(self):
+        return self.move_info is not None

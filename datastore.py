@@ -120,7 +120,9 @@ class GridState:
         self.space = space
         self.detection_radius = detection_radius
 
-        detection_radius_multiplier = 15 / 6
+        horizontal_detection_radius_multiplier = 0.96
+        vertical_detection_radius_multiplier = 0.96
+
         print("GRID INITIALISED")
         bottom_left = space.bottom_left
         top_right = space.top_right
@@ -136,8 +138,8 @@ class GridState:
         map_height = bottom_left.distance_to(top_left)
         map_width = bottom_left.distance_to(bottom_right)
 
-        pre_sector_height = detection_radius * detection_radius_multiplier
-        pre_sector_width = detection_radius * detection_radius_multiplier
+        pre_sector_height = detection_radius * vertical_detection_radius_multiplier
+        pre_sector_width = detection_radius * horizontal_detection_radius_multiplier
 
         self.y_count = int(map_height / pre_sector_height) + 1
         self.x_count = int(map_width / pre_sector_width) + 1

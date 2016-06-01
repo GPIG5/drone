@@ -18,4 +18,8 @@ class CollisionDetector(Layer):
                 collide_dist = d
         if collide is not None and collide_dist <= 10:
             op.move = self.telemetry.get_location().perp(collide, 10 / max(collide_dist, 1))
+            if hasattr(current_output.move, 'simple_string'):
+                op.move_info = "COLLISION DETECTION MOVE TO: " + op.move.simple_string()
+            else:
+                op.move_info = "COLLISION DETECTION MOVE TO"
         return op

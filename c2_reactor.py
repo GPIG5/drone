@@ -15,6 +15,10 @@ class C2Reactor(Layer):
         op = Layer.execute_layer(self, current_output)
         if self.returning:
             op.move = self.telemetry.get_initial_location()
+            if hasattr(current_output.move, 'simple_string'):
+                op.move_info = "C2 INSTRUCTION: " + op.move.simple_string()
+            else:
+                op.move_info = "C2 INSTRUCTION: "
         return op
 
     @asyncio.coroutine
