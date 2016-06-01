@@ -58,23 +58,22 @@ class PitStop(Layer):
     def startup(self):
         while True:
             dist = self.telemetry.get_location().distance_to(self.telemetry.get_initial_location())
-            if dist < 10:
-                if self.state == State.ready: #(time.time() - self.last_upload_time) > 600:
-                    self.last_upload_time = time.time()
-                    self.state = State.busy
-                    print("PERFORMING MAINTAINENCE")
-                    self.telemetry.recharge_battery()
-                    op = yield from self.readfiles(self.detection.get_data_folder())
-                    yield from self.communicator.send_message(messages.UploadDirect(
-                        self.uuid,
-                        op,
-                        self.data_store.grid_state
-                    ))
-                    yield from self.delete_images(os.path.join(self.detection.get_data_folder(), "images"))
-                    # After maintenance go to uploaded.
-                    self.state = State.maintained
-                    print("FINISHED MAINTAINENCE")
-            elif dist > 100:
+            if self.state == State.ready and dist < 10:
+                self.last_upload_time = time.time()
+                self.state = State.busy
+                print("PERFORMING MAINTENANCE")
+                self.telemetry.recharge_battery()
+                op = yield from self.readfiles(self.detection.get_data_folder())
+                yield from self.communicator.send_message(messages.UploadDirect(
+                    self.uuid,
+                    op,
+                    self.data_store.grid_state
+                ))
+                yield from self.delete_images(os.path.join(self.detection.get_data_folder(), "images"))
+                # After maintenance go to uploaded.
+                self.state = State.maintained
+                print("FINISHED MAINTENANCE")
+            elif self.state == State.maintained and dist > 100:
                 # We moved away from C2, when we get back, maintain again.
                 print("MOVED FROM C2, READY")
                 self.state = State.ready
