@@ -56,6 +56,35 @@ class Datastore:
                 locations_in_range.append(drone.location)
         return locations_in_range
 
+    def compute_neighbour_mass_center(self, current_position, radio_radius=0, timeout=0):
+
+        if radio_radius != 0:
+            neighbours_in_range = self.drones_in_range_of(current_position, radio_radius, timeout)
+        else:
+            if timeout != 0:
+                neighbours_in_range = [drone.location for asd, drone in self.drone_state.items() if drone.last_seen > time.time() - timeout]
+            else:
+                neighbours_in_range = [drone.location for asd, drone in self.drone_state.items()]
+
+        if len(neighbours_in_range) != 0:
+            # We find the center of mass by averaging. Mass of all points is considered 1
+            totalmass = 0
+            total_latitude = 0
+            total_longitude = 0
+            total_altitude = 0
+            for i in range(len(neighbours_in_range)):
+                totalmass += 1
+                total_latitude += neighbours_in_range[i].latitude
+                total_longitude += neighbours_in_range[i].longitude
+                total_altitude += neighbours_in_range[i].altitude
+
+            return Point(
+                latitude=total_latitude / totalmass,
+                longitude=total_longitude / totalmass,
+                altitude=total_altitude / totalmass)
+        else:
+            return None
+
     def get_grid_state(self):
         return self.grid_state
 
@@ -120,8 +149,8 @@ class GridState:
         self.space = space
         self.detection_radius = detection_radius
 
-        horizontal_detection_radius_multiplier = 0.7
-        vertical_detection_radius_multiplier = 0.7
+        horizontal_detection_radius_multiplier = 1
+        vertical_detection_radius_multiplier = 1
 
         print("GRID INITIALISED")
         bottom_left = space.bottom_left

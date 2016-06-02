@@ -6,6 +6,7 @@ import math
 
 from layer import *
 from geopy.distance import great_circle
+from point import Point
 
 
 class State(Enum):
@@ -13,6 +14,9 @@ class State(Enum):
     coherence = 2
     avoidance = 3
 
+class CoherenceState(Enum):
+    normal = 1
+    lost = 2
 
 class SwarmController(Layer):
     def __init__(self, next, config, data_store, telemetry):
@@ -23,6 +27,7 @@ class SwarmController(Layer):
         self.avoidance_target = None
         self.aggregation_timer = time.time()
         self.target = None
+        self.coherence_state = CoherenceState.normal
 
         self.avoidance_radius = config.getint('avoidance_radius')
         self.aggregation_timeout = config.getint('aggregation_timeout')
@@ -102,12 +107,18 @@ class SwarmController(Layer):
                 longitude=avoidance_longitude,
                 altitude=avoidance_altitude)
 
+            bearing_to_target = current_position.bearing_to_point(self.target)
+
             distance_to_avoidance_target = self.target.distance_to(current_position)
 
             # If the avoidance target is too close we instead move to a random direction
             if distance_to_avoidance_target < 5:
                 # print('CRITICAL AVOIDANCE DETECTED')
-                self.target = great_circle(meters=self.critical_avoidance_range).destination(current_position, random.uniform(0,360))
+                self.target = Point(great_circle(meters=self.critical_avoidance_range).destination(current_position, random.uniform(0,360)))
+            else:
+                self.target = Point(great_circle(meters=distance_to_avoidance_target).destination(current_position, (bearing_to_target+10) % 360))
+
+            self.target.altitude = current_position.altitude
 
             # print("AVOIDANCE TARGET: " + str(self.target) +
             #       "CURRENT POSITION: " + str(current_position) +
@@ -150,6 +161,7 @@ class SwarmController(Layer):
     def perform_coherence(self, current_output):
         if self.state != State.coherence:
             print("Coherence initiated")
+            self.coherence_state = CoherenceState.normal
             self.state = State.coherence
 
         if self.coherence_needed():
@@ -166,17 +178,28 @@ class SwarmController(Layer):
                     altitude=current_position.altitude +
                              (center_of_mass.altitude - current_position.altitude) * self.cohesion_degree)
             else:
-                # If no neighbours in range, move towards the initial position
+                # If no neighbours in range, move towards the mass center of recently seen drones first, otherwise go home
                 print("FRIENDS LOST")
-                initial_position = self.telemetry.get_initial_location()
-                bearing_to_initial = current_position.bearing_to_point(initial_position)
+                if self.coherence_state == CoherenceState.normal:
+                    if not hasattr(self.target, "distance_to"):
+                        self.target = Point(self.target)
 
-                towards_home = current_position.point_at_vector(self.radio_radius/2, bearing_to_initial)
+                    if self.target.distance_to(current_position) < self.target_radius:
+                        self.coherence_state == CoherenceState.lost
+                    else:
+                        center_of_mass_wider = self.compute_neighbour_mass_center(self.radio_radius*2)
+                        self.target = center_of_mass_wider
 
-                if towards_home.distance_to(initial_position) > current_position.distance_to(initial_position):
-                    self.target = initial_position
-                else:
-                    self.target = towards_home
+                if self.coherence_state == CoherenceState.lost:
+                    initial_position = self.telemetry.get_initial_location()
+                    bearing_to_initial = current_position.bearing_to_point(initial_position)
+
+                    towards_home = current_position.point_at_vector(self.radio_radius/2, bearing_to_initial)
+
+                    if towards_home.distance_to(initial_position) > current_position.distance_to(initial_position):
+                        self.target = initial_position
+                    else:
+                        self.target = towards_home
 
             # print("COHERENCE INITIATED TOWARDS: " + str(self.target) +
                   # "CURRENT POSITION: " + str(current_position) +
@@ -189,29 +212,12 @@ class SwarmController(Layer):
             current_output.move_info = "COHERENCE MOVE"
         return current_output
 
-    def compute_neighbour_mass_center(self):
+    def compute_neighbour_mass_center(self, custom_radius=0):
         current_position = self.telemetry.get_location()
-        neighbours_in_range = self.data_store.drones_in_range_of(current_position, self.radio_radius,
-                                                                 timeout=self.drone_timeout)
-
-        if len(neighbours_in_range) != 0:
-            # We find the center of mass by averaging. Mass of all points is considered 1
-            totalmass = 0
-            total_latitude = 0
-            total_longitude = 0
-            total_altitude = 0
-            for i in range(len(neighbours_in_range)):
-                totalmass += 1
-                total_latitude += neighbours_in_range[i].latitude
-                total_longitude += neighbours_in_range[i].longitude
-                total_altitude += neighbours_in_range[i].altitude
-
-            return Point(
-                latitude=total_latitude / totalmass,
-                longitude=total_longitude / totalmass,
-                altitude=total_altitude / totalmass)
+        if custom_radius == 0:
+            return self.data_store.compute_neighbour_mass_center(current_position, self.radio_radius, self.drone_timeout)
         else:
-            return None
+            return self.data_store.compute_neighbour_mass_center(current_position, custom_radius, self.drone_timeout)
 
     def coherence_complete(self):
         return self.telemetry.get_location().distance_to(self.target) < self.target_radius
