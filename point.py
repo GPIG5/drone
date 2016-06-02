@@ -1,6 +1,7 @@
 import geopy
 import math
 from geopy.distance import great_circle
+import uuid
 
 class Point(geopy.point.Point):
 
@@ -25,12 +26,20 @@ class Point(geopy.point.Point):
     def distance_to(self, p2):
         return great_circle(self, p2).meters
 
-    def perp(self, p2, scale):
-        return Point(
-            longitude = self.longitude + scale * (self.latitude - p2.latitude),
-            latitude = self.latitude + scale * (p2.longitude - self.longitude),
-            altitude = self.altitude
+    def perp(self, p2, dist, duuid):
+        b = self.bearing_to_point(p2)
+        h = 1.0 / float(
+            int.from_bytes(
+                b"\xff" * 16,
+                byteorder='little'
+            ) / int.from_bytes(
+                uuid.UUID(duuid).bytes_le,
+                byteorder='little'
+            )
         )
+        b += 180 + ((h * 180) - 90)
+        b %= 360
+        return self.point_at_vector(100 - (dist * 10), b)
 
     def bearing_to_point(self, target_location):
         # algorithm from https://gist.github.com/jeromer/2005586

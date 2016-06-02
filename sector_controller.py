@@ -131,7 +131,10 @@ class SectorController(Layer):
 
     def calculate_target(self):
         current_position = self.telemetry.get_location()
-        self.target_sector = self.data_store.get_closest_unclaimed(current_position, 10)
+        # mass_center = self.data_store.compute_neighbour_mass_center(current_position, radio_radius=400, timeout=10)
+        mass_center = self.data_store.compute_neighbour_mass_center(current_position, timeout=10)
+        self.target_sector = self.data_store.get_closest_unclaimed(mass_center, 10)
+
         if self.target_sector is not None:
             corners = self.grid_state.get_sector_corners(self.target_sector)
 
