@@ -46,6 +46,7 @@ class SectorController(Layer):
             return Layer.execute_layer(self, current_output)
 
         if self.target_sector is None:
+            print("TARGET NONE A")
             self.calculate_target()
 
         if self.target_sector is None:
@@ -60,10 +61,12 @@ class SectorController(Layer):
                         return self.perform_search(current_output)
                     else:
                         # Otherwise we calculate new target
+                        print("TARGET NONE B")
                         self.calculate_target()
 
                 # Else if the target got claimed while moving, calculate new target
                 elif not self.target_unclaimed():
+                    print("TARGET NONE C")
                     self.calculate_target()
                 return self.move_to_target(current_output)
             elif self.state == State.searching:
@@ -71,6 +74,7 @@ class SectorController(Layer):
                     print("Search complete")
                     current_output.complete_sector = self.target_sector
                     self.state = State.moving
+                    print("TARGET NONE D")
                     self.calculate_target()
                     return self.move_to_target(current_output)
                 else:
