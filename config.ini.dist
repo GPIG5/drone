@@ -1,17 +1,17 @@
 [DEFAULT]
-debug = False
+debug = True
 
 [communicator]
 host = 127.0.0.1
 port = 5555
 
 [main]
-num_drones = 15
+num_drones = 1
 
 [telemetry]
-battery_size = 1800
-start_location = (53.929472,-1.165084,75)
-c2_location = (53.929472,-1.165084,100)
+battery_size = 600
+start_location = (53.955843,-1.080043,100)
+c2_location = (53.955843,-1.080043,100)
 
 [detection]
 data_folder = ./data/
@@ -24,10 +24,10 @@ target_radius = 1
 detection_radius = 120
 radio_radius = 200
 drone_timeout = 10
-cohesion_degree = 75
+cohesion_degree = 60
 
 [engine]
-speed = 5
+speed = 8
 travel_time = 1
 
 [defects]
