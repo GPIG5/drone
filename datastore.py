@@ -62,6 +62,46 @@ class Datastore:
     def set_search_space(self, space):
         self.grid_state = GridState(space, self.detection_radius)
 
+    def get_next_sector(self, position, timeout=0):
+        best = (None, -1)
+        for i, j in itertools.product(range(self.grid_state.x_count), range(self.grid_state.y_count)):
+            sector_state = self.grid_state.state_for((i, j))
+            sector_drone = self.grid_state.drone_of((i, j))
+            if sector_drone is not None and sector_drone != self.uuid:
+                # print("STATE OF OTHER DRONES:")
+                # print(self.uuid)
+                # print(str(self.drone_state))
+                sector_drone = self.drone_state[sector_drone]
+
+            if sector_state == SectorState.notSearched:
+                # Check range to drone.
+                count = 0
+                for drone in self.drone_state:
+                    distance = self.grid_state.get_distance_to((i, j), self.drone_state[drone].location)
+                    # ToDo : radio dist from config
+                    if distance < 200:
+                        count += 1
+                # New best if we have more drones in range
+                if best[1] < count:
+                    best = ((i, j), count)
+
+            # If the sector has been claimed by a drone the communications from who have ceased, then we would like to
+            # search this sector as well
+            elif timeout != 0 and sector_state == SectorState.being_searched and sector_drone is not None and sector_drone != self.uuid:
+                if sector_drone.last_seen < time.time() - timeout:
+                    count = 0
+                    for drone in self.drone_state:
+                        distance = self.grid_state.get_distance_to((i, j), self.drone_state[drone].location)
+                        # ToDo : radio dist from config
+                        if distance < 200:
+                            count += 1
+                    # New best if we have more drones in range
+                    if best[1] < count:
+                        best = ((i, j), count)
+        print("Best drone count: " + str(best[1]))
+        return best[0]
+
+
     def get_closest_unclaimed(self, position, timeout=0):
         min_distance = (None, None)
         for i, j in itertools.product(range(self.grid_state.x_count), range(self.grid_state.y_count)):
@@ -85,7 +125,6 @@ class Datastore:
                     distance = self.grid_state.get_distance_to((i, j), position)
                     if min_distance[0] is None or min_distance[1] > distance:
                         min_distance = ((i, j), distance)
-
         return min_distance[0]
 
     @asyncio.coroutine

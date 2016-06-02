@@ -31,9 +31,6 @@ class SwarmController(Layer):
         self.critical_avoidance_range = config.getint('critical_avoidance_range')
 
     def execute_layer(self, current_output):
-
-        # print("SWARM STATE: " + str(self.state))
-
         if self.state == State.normal:
             # 1. Check if avoidance needed
             if self.avoidance_needed():
