@@ -28,6 +28,7 @@ class SwarmController(Layer):
         self.aggregation_timer = time.time()
         self.target = None
         self.coherence_state = CoherenceState.normal
+        self.coherence_timer = None
 
         self.avoidance_radius = config.getint('avoidance_radius')
         self.aggregation_timeout = config.getint('aggregation_timeout')
@@ -163,6 +164,7 @@ class SwarmController(Layer):
             print("Coherence initiated")
             self.coherence_state = CoherenceState.normal
             self.state = State.coherence
+            self.coherence_timer = time.time()
 
         if self.coherence_needed():
             current_position = self.telemetry.get_location()
@@ -184,8 +186,8 @@ class SwarmController(Layer):
                     if not hasattr(self.target, "distance_to"):
                         self.target = Point(self.target)
 
-                    if self.target.distance_to(current_position) < self.target_radius:
-                        self.coherence_state == CoherenceState.lost
+                    if time.time() - self.coherence_timer > 10:
+                        self.coherence_state = CoherenceState.lost
                     else:
                         center_of_mass_wider = self.compute_neighbour_mass_center(self.radio_radius*2)
                         self.target = center_of_mass_wider
